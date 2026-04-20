@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<!-- saved from url=(0054)file:///Users/kumori67/Downloads/labor_law_review.html -->
+<html lang="zh-TW"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="法條">
+<meta name="theme-color" content="#1a1a1a">
+<title>勞動法複習</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+<link href="./index_files/css2" rel="stylesheet">
+
+<!-- ============================================================
+     Firebase 初始化（跟 WordLens 同樣的三層備援模式）
+     
+     ★ 使用前需修改：把下面 cfg 換成你新 Firebase 專案的 config
+     ============================================================ -->
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import{getFirestore,doc,setDoc,getDoc}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// Firebase config - kumolaw 專案
+const cfg={
+  apiKey:"AIzaSyCv-VJpAiKo8d7CMoyAybR0N5W4P4LTmSk",
+  authDomain:"kumolaw-b67fa.firebaseapp.com",
+  projectId:"kumolaw-b67fa",
+  storageBucket:"kumolaw-b67fa.firebasestorage.app",
+  messagingSenderId:"548690697067",
+  appId:"1:548690697067:web:90f70b481fdf62aedb8a2e"
+};
+
+const app=initializeApp(cfg);
+const db=getFirestore(app);
+const REF=doc(db,"law_users","kumo");
+
+// ── 第一層：localStorage 本機備份
+function lsBackup(cards,prog,notes){
+  try{
+    if(cards&&cards.length>0){
+      localStorage.setItem("law-cards-backup",JSON.stringify(cards));
+      localStorage.setItem("law-cards-count",cards.length);
+    }
+    if(prog)localStorage.setItem("law-prog-backup",JSON.stringify(prog));
+    if(notes)localStorage.setItem("law-notes-backup",JSON.stringify(notes));
+  }catch(e){console.warn("lsBackup",e);}
+}
+function lsRestore(){
+  try{
+    const cards=JSON.parse(localStorage.getItem("law-cards-backup")||"[]");
+    const prog=JSON.parse(localStorage.getItem("law-prog-backup")||"{}");
+    const notes=JSON.parse(localStorage.getItem("law-notes-backup")||"{}");
+    return{cards,prog,notes};
+  }catch(e){return{cards:[],prog:{},notes:{}};}
+}
+
+async function fbLoad(){
+  try{
+    const snap=await getDoc(REF);
+    if(snap.exists()){
+      const d=snap.data();
+      const fbCards=d.cards||[];
+      const fbProg=d.progress||{};
+      const fbNotes=d.notes||{};
+      
+      // ── 第二層：比對本機備份
+      const local=lsRestore();
+      const knownCount=parseInt(localStorage.getItem("law-cards-count")||"0");
+      
+      if(fbCards.length===0&&local.cards.length>0){
+        console.warn("⚠️ Firebase 資料為空，使用本機備份（"+local.cards.length+" 筆）");
+        window._cards=local.cards;
+        window._prog=local.prog;
+        window._notes=local.notes;
+        window._dataWarning="Firebase 資料異常，已自動從本機備份還原 "+local.cards.length+" 條。請確認後手動同步。";
+      }else if(knownCount>0&&fbCards.length<knownCount*0.5){
+        console.warn("⚠️ Firebase 筆數異常（"+fbCards.length+" vs 已知"+knownCount+"），使用本機備份");
+        window._cards=local.cards.length>fbCards.length?local.cards:fbCards;
+        window._prog=fbProg;
+        window._notes=fbNotes;
+        window._dataWarning="偵測到雲端條文數量異常減少，已自動選用較多的版本（"+window._cards.length+" 條）。";
+      }else{
+        window._cards=fbCards;
+        window._prog=fbProg;
+        window._notes=fbNotes;
+        lsBackup(fbCards,fbProg,fbNotes);
+      }
+    }else{
+      const local=lsRestore();
+      if(local.cards.length>0){
+        window._cards=local.cards;
+        window._prog=local.prog;
+        window._notes=local.notes;
+        window._dataWarning="雲端無資料，已從本機備份還原 "+local.cards.length+" 條。";
+      }else{
+        window._cards=[];window._prog={};window._notes={};
+      }
+    }
+  }catch(e){
+    console.warn("fbLoad",e);
+    const local=lsRestore();
+    window._cards=local.cards;
+    window._prog=local.prog;
+    window._notes=local.notes;
+    if(local.cards.length>0)window._dataWarning="離線模式：顯示本機備份的 "+local.cards.length+" 條。";
+  }
+}
+
+async function fbSave(){
+  try{
+    const cards=window._cards||[];
+    const prog=window._prog||{};
+    const notes=window._notes||{};
+    
+    // ── 第三層：防止空資料覆蓋
+    const knownCount=parseInt(localStorage.getItem("law-cards-count")||"0");
+    if(knownCount>0&&cards.length===0){
+      console.warn("🛑 阻止危險存檔：cards 為空但已知有 "+knownCount+" 筆");
+      return;
+    }
+    if(knownCount>4&&cards.length<knownCount*0.5){
+      console.warn("🛑 阻止危險存檔：條文數量從 "+knownCount+" 驟降至 "+cards.length);
+      return;
+    }
+    await setDoc(REF,{cards,progress:prog,notes},{merge:true});
+    lsBackup(cards,prog,notes);
+    window._syncStatus="synced";
+    if(window._onSync)window._onSync();
+  }catch(e){
+    console.warn("fbSave",e);
+    window._syncStatus="error";
+    if(window._onSync)window._onSync();
+  }
+}
+window.fbSave=fbSave;
+
+fbLoad().then(()=>{
+  window._fbReady=true;
+  window._syncStatus="synced";
+  if(window._onFbReady)window._onFbReady();
+});
+</script>
+
+<style>
+:root{
+  --bg:#1a1a1a;--s1:#222;--s2:#2a2a2a;--bd:#3a3a3a;--bd2:#444;
+  --ac:#d97706;--al:#f59e0b;--abg:rgba(217,119,6,.1);--abr:rgba(217,119,6,.3);
+  --gn:#22c55e;--rd:#ef4444;--bl:#60a5fa;--pu:#a78bfa;
+  --tx:#f5f0eb;--mu:#888;--m2:#aaa;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--tx);font-family:"Noto Sans TC",sans-serif;overflow:hidden}
+button{cursor:pointer;font-family:inherit;border:none;background:none;color:inherit}
+input,textarea,select{font-family:inherit;color:var(--tx)}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:99px}
+
+#app{max-width:480px;margin:0 auto;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+
+/* 底部導覽 */
+nav{display:flex;background:var(--s1);border-top:1px solid var(--bd);order:2;flex-shrink:0}
+nav button{flex:1;padding:10px 1px 12px;font-size:9px;font-weight:600;color:var(--mu);text-transform:uppercase;display:flex;flex-direction:column;align-items:center;gap:3px;letter-spacing:.3px}
+nav button .ni{font-size:19px}
+nav button.on{color:var(--al)}
+
+.view{flex:1;overflow-y:auto;display:none;flex-direction:column}
+.view.show{display:flex}
+
+/* Hero */
+.hero{padding:44px 24px 16px}
+.app-name{font-family:"Noto Serif TC",serif;font-size:38px;letter-spacing:-.5px;font-weight:900}
+.app-name em{color:var(--al);font-style:normal}
+.app-sub{font-size:12px;color:var(--mu);margin-top:6px;letter-spacing:2px;text-transform:uppercase}
+.sync-row{display:flex;align-items:center;gap:6px;margin-top:10px}
+.sdot{width:7px;height:7px;border-radius:50%;background:var(--gn);flex-shrink:0}
+.sdot.err{background:var(--rd)}
+.sdot.sync{background:var(--al);animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.4}}
+.stxt{font-size:11px;color:var(--mu)}
+.hdiv{height:1px;background:var(--bd);margin:0 24px 16px}
+
+/* 警告訊息 */
+.warn{margin:0 24px 16px;padding:12px 14px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-radius:12px;font-size:13px;color:var(--rd);line-height:1.5}
+
+/* 統計卡 */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 24px 16px}
+.stat{background:var(--s1);border:1px solid var(--bd);border-radius:14px;padding:14px 8px;text-align:center}
+.stn{font-family:"Playfair Display",serif;font-size:32px;color:var(--al);line-height:1}
+.stl{font-size:11px;color:var(--mu);margin-top:4px}
+
+/* 區塊標題 */
+.sh{padding:4px 24px 8px;font-size:11px;color:var(--mu);letter-spacing:1.5px;text-transform:uppercase;font-weight:700}
+
+/* 今日複習大卡 */
+.today{margin:0 24px 20px;background:var(--s1);border:1px solid var(--bd);border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:14px;position:relative;overflow:hidden}
+.today::before{content:"";position:absolute;top:-40px;right:-40px;width:120px;height:120px;background:var(--abg);border-radius:50%}
+.today-lbl{font-size:11px;color:var(--mu);letter-spacing:1.5px;text-transform:uppercase;font-weight:700;position:relative}
+.today-n{font-family:"Playfair Display",serif;font-size:64px;color:var(--al);line-height:1;position:relative}
+.today-desc{font-size:13px;color:var(--m2);position:relative}
+.bp{background:var(--ac);color:#fff;border-radius:14px;padding:15px;font-size:15px;font-weight:700;width:100%;letter-spacing:.5px}
+.bp:active{opacity:.8}
+.bp:disabled{opacity:.35;cursor:not-allowed}
+
+/* 法規分布 */
+.cats{padding:0 24px 20px;display:flex;flex-direction:column;gap:8px}
+.catrow{background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between}
+.catname{font-size:15px;font-weight:600}
+.catnum{font-family:"Playfair Display",serif;font-size:22px;color:var(--al)}
+
+/* 空狀態 */
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:var(--mu);padding:40px;text-align:center}
+.empty-ico{font-size:48px}
+.empty-ttl{font-size:18px;font-weight:700;color:var(--tx)}
+.empty-msg{font-size:13px;line-height:1.6}
+
+/* 閃卡 */
+.qwrap{flex:1;display:flex;flex-direction:column;padding:20px 24px 32px;gap:14px;overflow-y:auto}
+.qtop{display:flex;align-items:center;justify-content:space-between}
+.qback{font-size:22px;color:var(--mu);padding:6px 10px}
+.qcnt{font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--mu)}
+.qflip{font-size:18px;color:var(--mu);padding:6px 10px}
+.qprog{height:3px;background:var(--bd);border-radius:99px;overflow:hidden}
+.qfill{height:100%;background:linear-gradient(90deg,var(--ac),var(--al));transition:width .4s}
+.qcard{background:var(--s1);border:1px solid var(--ac);border-radius:20px;padding:28px 22px;min-height:420px;display:flex;flex-direction:column;cursor:pointer}
+.qcard-front{justify-content:center;align-items:center;text-align:center;gap:16px}
+.qlaw{font-size:11px;color:var(--al);letter-spacing:2px;text-transform:uppercase;font-weight:700}
+.qnum{font-family:"Noto Serif TC",serif;font-size:52px;font-weight:900;letter-spacing:-1px}
+.qttl{font-size:17px;color:var(--m2);letter-spacing:1px}
+.qhint{font-size:11px;color:var(--mu);margin-top:20px;letter-spacing:2px}
+.qcard-back{gap:14px}
+.qback-head{display:flex;gap:10px;align-items:baseline;border-bottom:1px solid var(--bd);padding-bottom:12px}
+.qback-law{font-size:11px;color:var(--al);letter-spacing:1.5px;text-transform:uppercase;font-weight:700}
+.qback-num{font-size:18px;font-weight:700}
+.qback-ttl{font-size:15px;color:var(--m2);margin-bottom:4px}
+.qcontent{font-size:14px;line-height:1.85;white-space:pre-line;font-family:"Noto Serif TC",serif}
+.qnote{background:var(--abg);border-left:3px solid var(--ac);border-radius:0 10px 10px 0;padding:12px 14px;margin-top:10px}
+.qnote-lbl{font-size:10px;color:var(--al);letter-spacing:1.5px;font-weight:700;margin-bottom:6px}
+.qnote-txt{font-size:13px;color:var(--tx);line-height:1.6;white-space:pre-line}
+
+/* 評分按鈕 */
+.rate-lbl{font-size:11px;color:var(--mu);letter-spacing:2px;text-align:center;margin-top:6px}
+.rates{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.rate{background:var(--s1);border:2px solid var(--bd2);border-radius:14px;padding:14px 8px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.rate:active{transform:scale(.96)}
+.rate.rd{border-color:var(--rd);color:var(--rd)}
+.rate.gy{border-color:var(--bd2);color:var(--m2)}
+.rate.gr{border-color:var(--ac);color:var(--al)}
+.rate-ico{font-size:20px;font-weight:700}
+.rate-tx{font-size:12px;font-weight:700;letter-spacing:1px}
+.rate-sub{font-size:10px;color:var(--mu);font-family:"JetBrains Mono",monospace}
+
+/* 完成 */
+.done{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:40px;text-align:center}
+.done-ico{font-size:56px}
+.done-ttl{font-size:22px;font-weight:700}
+.done-msg{font-size:13px;color:var(--mu);line-height:1.6;max-width:280px}
+
+/* 新增條文 */
+.awrap{padding:20px 24px 32px;display:flex;flex-direction:column;gap:16px}
+.atitle{font-size:20px;font-weight:700;margin-bottom:4px}
+.afield{display:flex;flex-direction:column;gap:6px}
+.albl{font-size:11px;color:var(--m2);letter-spacing:1px;text-transform:uppercase;font-weight:700}
+.ahint{font-size:11px;color:var(--mu)}
+.inp{background:var(--s1);border:1px solid var(--bd2);border-radius:12px;padding:13px 15px;font-size:15px;outline:none;width:100%}
+.inp:focus{border-color:var(--ac)}
+.inp.txt{font-family:"Noto Serif TC",serif;line-height:1.8;min-height:200px;resize:vertical}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.chip{background:var(--s2);border:1px solid var(--bd2);border-radius:20px;padding:4px 12px;font-size:12px}
+.chip:active{border-color:var(--ac)}
+.chip.on{background:var(--abg);border-color:var(--ac);color:var(--al)}
+.arow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+.bs{background:var(--s2);border:1px solid var(--bd2);color:var(--m2);border-radius:14px;padding:14px;font-size:14px;font-weight:600}
+.bs:active{border-color:var(--ac);color:var(--al)}
+.saved-msg{background:var(--abg);border:1px solid var(--abr);border-radius:12px;padding:10px 14px;font-size:13px;color:var(--al);text-align:center}
+
+/* 檢索 */
+.swrap{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.stb{padding:16px 24px 8px}
+.srch{width:100%;background:var(--s1);border:1px solid var(--bd2);border-radius:12px;padding:11px 15px;font-size:14px;outline:none}
+.srch:focus{border-color:var(--ac)}
+.slfx{display:flex;gap:6px;overflow-x:auto;padding:10px 24px 6px;scrollbar-width:none;flex-shrink:0}
+.slfx::-webkit-scrollbar{display:none}
+.scat{background:var(--s2);border:1px solid var(--bd2);color:var(--mu);padding:6px 14px;border-radius:20px;font-size:12px;white-space:nowrap;flex-shrink:0}
+.scat.on{background:var(--abg);border-color:var(--ac);color:var(--al);font-weight:600}
+.scnt{font-size:11px;color:var(--mu);padding:0 24px 8px;letter-spacing:1px}
+.slist{flex:1;overflow-y:auto;padding:0 24px 24px;display:flex;flex-direction:column;gap:8px}
+.sitem{background:var(--s1);border:1px solid var(--bd);border-radius:14px;overflow:hidden}
+.sitem-h{padding:14px 16px;cursor:pointer;display:flex;flex-direction:column;gap:4px}
+.sitem-h:active{background:var(--s2)}
+.sitem-top{display:flex;align-items:baseline;gap:8px}
+.sitem-law{font-size:10px;color:var(--al);letter-spacing:1.5px;text-transform:uppercase;font-weight:700}
+.sitem-num{font-size:15px;font-weight:700}
+.sitem-ttl{font-size:13px;color:var(--m2)}
+.sitem-tag{font-size:10px;color:var(--al)}
+.sitem-b{padding:0 16px 16px;border-top:1px solid var(--bd);display:none;flex-direction:column;gap:12px}
+.sitem-b.open{display:flex}
+.sitem-txt{font-size:14px;line-height:1.8;white-space:pre-line;font-family:"Noto Serif TC",serif;padding-top:12px}
+.sitem-acts{display:flex;gap:8px}
+.actbtn{flex:1;background:var(--s2);border:1px solid var(--bd2);border-radius:10px;padding:9px;font-size:12px;color:var(--m2)}
+.actbtn:active{border-color:var(--ac);color:var(--al)}
+.actbtn.del{color:var(--rd);border-color:rgba(239,68,68,.3)}
+
+/* 編輯模式 */
+.edit-form{padding:20px 24px;display:flex;flex-direction:column;gap:12px}
+
+/* 筆記 */
+.nwrap{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.ntb{display:flex;gap:8px;padding:16px 24px 8px}
+.nfilter{background:var(--s2);border:1px solid var(--bd2);color:var(--mu);padding:7px 14px;border-radius:20px;font-size:12px}
+.nfilter.on{background:var(--abg);border-color:var(--ac);color:var(--al);font-weight:600}
+.nlist{flex:1;overflow-y:auto;padding:0 24px 24px;display:flex;flex-direction:column;gap:10px}
+.nitem{background:var(--s1);border:1px solid var(--bd);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.nitem-h{display:flex;align-items:baseline;gap:8px}
+.nitem-body{font-size:13px;line-height:1.7;color:var(--m2);white-space:pre-line;cursor:pointer;padding:10px;background:var(--abg);border-left:3px solid var(--ac);border-radius:0 8px 8px 0}
+.nitem-empty{font-size:12px;color:var(--mu);font-style:italic;cursor:pointer;padding:8px 0}
+.nedit{display:flex;flex-direction:column;gap:8px}
+.nedit textarea{min-height:100px;resize:vertical}
+
+/* 設定 */
+.stwrap{padding:20px 24px;display:flex;flex-direction:column;gap:20px}
+.stgroup{display:flex;flex-direction:column;gap:8px}
+.stgroup-t{font-size:11px;color:var(--mu);letter-spacing:1.5px;text-transform:uppercase;font-weight:700}
+.stitem{background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;text-align:left}
+.stitem:active{border-color:var(--ac)}
+.stitem.danger:active{border-color:var(--rd)}
+.stitem-ic{font-size:20px}
+.stitem-main{flex:1}
+.stitem-t{font-size:14px;font-weight:700}
+.stitem-s{font-size:11px;color:var(--mu);margin-top:2px}
+.stabout{background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:14px 16px;font-size:12px;color:var(--m2);line-height:1.7}
+
+/* Toast */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--ac);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:100;animation:toastin .3s}
+@keyframes toastin{from{opacity:0;transform:translateX(-50%) translateY(10px)}}
+</style>
+</head>
+<body>
+
+<div id="app">
+
+<!-- ============ 總覽 ============ -->
+<section class="view show" id="v-home">
+  <div class="hero">
+    <div class="app-name">勞動<em>法</em></div>
+    <div class="app-sub">Labor Law Review</div>
+    <div class="sync-row"><span class="sdot" id="sdot"></span><span class="stxt" id="stxt">已同步 · kumo</span></div>
+  </div>
+  <div class="hdiv"></div>
+  <div id="warnbox"></div>
+  
+  <div class="stats">
+    <div class="stat"><div class="stn" id="st-total">0</div><div class="stl">總條文</div></div>
+    <div class="stat"><div class="stn" id="st-learned">0</div><div class="stl">已接觸</div></div>
+    <div class="stat"><div class="stn" id="st-master">0</div><div class="stl">已熟練</div></div>
+  </div>
+  
+  <div class="sh">今日複習</div>
+  <div class="today">
+    <div class="today-lbl">Due Today</div>
+    <div class="today-n" id="today-n">0</div>
+    <div class="today-desc" id="today-desc">還沒有任何條文</div>
+    <button class="bp" id="btn-start">先去新增條文 →</button>
+  </div>
+  
+  <div class="sh" id="cats-h" style="display:none">法規分布</div>
+  <div class="cats" id="cats-list"></div>
+</section>
+
+<!-- ============ 閃卡 ============ -->
+<section class="view" id="v-card">
+  <div class="qwrap" id="card-content"></div>
+</section>
+
+<!-- ============ 新增 ============ -->
+<section class="view" id="v-add">
+  <div class="awrap">
+    <div class="atitle">新增條文</div>
+    <div id="saved-msg"></div>
+    
+    <div class="afield">
+      <div class="albl">法律名稱 *</div>
+      <div class="ahint">例：勞動基準法、勞工保險條例、行政程序法</div>
+      <input type="text" class="inp" id="f-law" placeholder="勞動基準法">
+      <div class="chips" id="law-chips"></div>
+    </div>
+    
+    <div class="afield">
+      <div class="albl">條號 *</div>
+      <div class="ahint">例：第 84-1 條、第 32 條第 2 項</div>
+      <input type="text" class="inp" id="f-num" placeholder="第 84-1 條">
+    </div>
+    
+    <div class="afield">
+      <div class="albl">標題 / 重點</div>
+      <div class="ahint">幫自己記住這條在講什麼</div>
+      <input type="text" class="inp" id="f-ttl" placeholder="責任制">
+    </div>
+    
+    <div class="afield">
+      <div class="albl">條文內容 *</div>
+      <textarea class="inp txt" id="f-ctt" placeholder="貼上完整條文內容…"></textarea>
+    </div>
+    
+    <div class="arow">
+      <button class="bs" id="btn-saveadd">儲存並繼續</button>
+      <button class="bp" id="btn-savedone">儲存並返回</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 檢索 ============ -->
+<section class="view" id="v-search">
+  <div class="swrap">
+    <div class="stb"><input type="text" class="srch" id="srch" placeholder="條號、標題、關鍵字"></div>
+    <div class="slfx" id="slfx"></div>
+    <div class="scnt" id="scnt">0 筆結果</div>
+    <div class="slist" id="slist"></div>
+  </div>
+</section>
+
+<!-- ============ 筆記 ============ -->
+<section class="view" id="v-notes">
+  <div class="nwrap">
+    <div class="ntb">
+      <button class="nfilter on" data-nf="all">全部條文</button>
+      <button class="nfilter" data-nf="has">有筆記 (<span id="note-cnt">0</span>)</button>
+    </div>
+    <div class="nlist" id="nlist"></div>
+  </div>
+</section>
+
+<!-- ============ 設定 ============ -->
+<section class="view" id="v-sets">
+  <div class="stwrap">
+    <div class="stgroup">
+      <div class="stgroup-t">Data</div>
+      <button class="stitem" id="btn-export">
+        <div class="stitem-ic">⬇</div>
+        <div class="stitem-main"><div class="stitem-t">匯出備份</div><div class="stitem-s">儲存為 JSON 檔</div></div>
+      </button>
+      <button class="stitem" id="btn-import">
+        <div class="stitem-ic">⬆</div>
+        <div class="stitem-main"><div class="stitem-t">匯入 JSON</div><div class="stitem-s">批次載入條文（與現有合併）</div></div>
+      </button>
+      <button class="stitem" id="btn-sync">
+        <div class="stitem-ic">↻</div>
+        <div class="stitem-main"><div class="stitem-t">強制同步到雲端</div><div class="stitem-s">把本機資料推上 Firebase</div></div>
+      </button>
+      <input type="file" id="fileimp" accept="application/json" style="display:none">
+    </div>
+    
+    <div class="stgroup">
+      <div class="stgroup-t">Danger Zone</div>
+      <button class="stitem danger" id="btn-clear">
+        <div class="stitem-ic" style="color:var(--rd)">✕</div>
+        <div class="stitem-main"><div class="stitem-t" style="color:var(--rd)">清空所有資料</div><div class="stitem-s" style="color:rgba(239,68,68,.7)">無法復原</div></div>
+      </button>
+    </div>
+    
+    <div class="stgroup">
+      <div class="stgroup-t">About</div>
+      <div class="stabout">
+        勞動法複習 v0.1<br><br>
+        採用 SM-2 間隔重複演算法，資料同步於 Firestore 並有 localStorage 本機備援。<br><br>
+        用戶：kumo<br>
+        建議定期使用「匯出備份」。
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 底部導覽 ============ -->
+<nav>
+  <button data-v="home" class="on"><span class="ni">◉</span><span>總覽</span></button>
+  <button data-v="card"><span class="ni">⬚</span><span>閃卡</span></button>
+  <button data-v="add"><span class="ni">+</span><span>新增</span></button>
+  <button data-v="search"><span class="ni">⚲</span><span>檢索</span></button>
+  <button data-v="notes"><span class="ni">✎</span><span>筆記</span></button>
+  <button data-v="sets"><span class="ni">⚙</span><span>設定</span></button>
+</nav>
+
+</div>
+
+<script>
+// ==========================================
+// State
+// ==========================================
+let cards=[],prog={},notes={};
+let currentCard=null,cardQueue=[],cardIdx=0,cardFlipped=false;
+let searchFilter="全部",searchQuery="",expandedCard=null,editingCard=null;
+let noteFilter="all",editingNote=null;
+
+// ==========================================
+// SM-2 演算法
+// ==========================================
+function sm2(existing,quality){
+  let{reps=0,interval=0,ease=2.5}=existing||{};
+  if(quality<3){reps=0;interval=1;}
+  else{
+    ease=Math.max(1.3,ease+0.1-(5-quality)*(0.08+(5-quality)*0.02));
+    reps+=1;
+    if(reps===1)interval=1;
+    else if(reps===2)interval=3;
+    else interval=Math.round(interval*ease);
+  }
+  return{reps,interval,ease,next:Date.now()+interval*86400000,last:Date.now()};
+}
+
+function nextReviewLabel(interval){
+  if(interval<=1)return"明天";
+  if(interval<30)return interval+" 天後";
+  if(interval<365)return Math.round(interval/30)+" 個月後";
+  return Math.round(interval/365)+" 年後";
+}
+
+// ==========================================
+// Utility
+// ==========================================
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8);}
+function toast(msg){
+  const el=document.createElement("div");
+  el.className="toast";el.textContent=msg;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),1800);
+}
+function save(){
+  window._cards=cards;window._prog=prog;window._notes=notes;
+  window._syncStatus="syncing";updateSyncBadge();
+  if(window.fbSave)window.fbSave();
+}
+function updateSyncBadge(){
+  const dot=document.getElementById("sdot"),txt=document.getElementById("stxt");
+  if(!dot)return;
+  const s=window._syncStatus;
+  dot.className="sdot"+(s==="error"?" err":s==="syncing"?" sync":"");
+  txt.textContent=s==="error"?"同步失敗":s==="syncing"?"同步中…":"已同步 · kumo";
+}
+window._onSync=updateSyncBadge;
+
+// ==========================================
+// 導覽
+// ==========================================
+function showView(v){
+  document.querySelectorAll(".view").forEach(el=>el.classList.remove("show"));
+  document.getElementById("v-"+v).classList.add("show");
+  document.querySelectorAll("nav button").forEach(b=>{
+    b.classList.toggle("on",b.dataset.v===v);
+  });
+  if(v==="home")renderHome();
+  else if(v==="card")startReview();
+  else if(v==="add")renderAdd();
+  else if(v==="search")renderSearch();
+  else if(v==="notes")renderNotes();
+}
+document.querySelectorAll("nav button").forEach(b=>{
+  b.addEventListener("click",()=>showView(b.dataset.v));
+});
+
+// ==========================================
+// 總覽
+// ==========================================
+function renderHome(){
+  const total=cards.length;
+  let learned=0,master=0,due=0;
+  const now=Date.now();
+  const byLaw={};
+  
+  cards.forEach(c=>{
+    byLaw[c.law]=(byLaw[c.law]||0)+1;
+    const p=prog[c.id];
+    if(p){
+      learned++;
+      if(p.reps>=3)master++;
+      if(p.next<=now)due++;
+    }else due++;
+  });
+  
+  document.getElementById("st-total").textContent=total;
+  document.getElementById("st-learned").textContent=learned;
+  document.getElementById("st-master").textContent=master;
+  document.getElementById("today-n").textContent=due;
+  
+  const btn=document.getElementById("btn-start");
+  if(total===0){
+    document.getElementById("today-desc").textContent="還沒有任何條文";
+    btn.textContent="先去新增條文 →";
+    btn.onclick=()=>showView("add");
+    btn.disabled=false;
+  }else if(due===0){
+    document.getElementById("today-desc").textContent="今日已完成";
+    btn.textContent="今日已完成";
+    btn.disabled=true;
+    btn.onclick=null;
+  }else{
+    document.getElementById("today-desc").textContent="張卡片等待複習";
+    btn.textContent="開始複習 →";
+    btn.disabled=false;
+    btn.onclick=()=>showView("card");
+  }
+  
+  // 法規分布
+  const catsH=document.getElementById("cats-h"),catsL=document.getElementById("cats-list");
+  const keys=Object.keys(byLaw);
+  if(keys.length===0){
+    catsH.style.display="none";catsL.innerHTML="";
+  }else{
+    catsH.style.display="block";
+    catsL.innerHTML=keys.sort().map(k=>
+      `<div class="catrow"><div class="catname">${k}</div><div class="catnum">${byLaw[k]}</div></div>`
+    ).join("");
+  }
+  
+  // 警告訊息
+  const wb=document.getElementById("warnbox");
+  if(window._dataWarning){
+    wb.innerHTML=`<div class="warn">${window._dataWarning}</div>`;
+  }else wb.innerHTML="";
+}
+
+// ==========================================
+// 閃卡
+// ==========================================
+function startReview(){
+  const now=Date.now();
+  cardQueue=cards.filter(c=>{
+    const p=prog[c.id];
+    return!p||p.next<=now;
+  }).sort(()=>Math.random()-0.5);
+  cardIdx=0;
+  cardFlipped=false;
+  renderCard();
+}
+
+function renderCard(){
+  const wrap=document.getElementById("card-content");
+  
+  if(cardQueue.length===0){
+    wrap.innerHTML=`
+      <div class="done">
+        <div class="done-ico">📚</div>
+        <div class="done-ttl">沒有條文可以複習</div>
+        <div class="done-msg">先到「新增」頁建立一些條文吧</div>
+        <button class="bp" onclick="showView('home')" style="max-width:200px">返回總覽</button>
+      </div>`;
+    return;
+  }
+  
+  if(cardIdx>=cardQueue.length){
+    wrap.innerHTML=`
+      <div class="done">
+        <div class="done-ico">🎌</div>
+        <div class="done-ttl">本輪複習完成</div>
+        <div class="done-msg">下次複習時間已根據你的熟練度自動安排</div>
+        <button class="bp" onclick="showView('home')" style="max-width:200px">返回總覽</button>
+      </div>`;
+    return;
+  }
+  
+  const c=cardQueue[cardIdx];
+  const pgPct=((cardIdx+1)/cardQueue.length)*100;
+  const note=notes[c.id];
+  
+  let cardHtml;
+  if(!cardFlipped){
+    cardHtml=`
+      <div class="qcard qcard-front" onclick="flipCard()">
+        <div class="qlaw">${c.law}</div>
+        <div class="qnum">${c.num}</div>
+        ${c.title?`<div class="qttl">${c.title}</div>`:""}
+        <div class="qhint">點擊翻面</div>
+      </div>`;
+  }else{
+    cardHtml=`
+      <div class="qcard qcard-back" onclick="flipCard()">
+        <div class="qback-head">
+          <div class="qback-law">${c.law}</div>
+          <div class="qback-num">${c.num}</div>
+        </div>
+        ${c.title?`<div class="qback-ttl">${c.title}</div>`:""}
+        <div class="qcontent">${escapeHtml(c.content)}</div>
+        ${note?`<div class="qnote"><div class="qnote-lbl">My Note</div><div class="qnote-txt">${escapeHtml(note)}</div></div>`:""}
+      </div>`;
+  }
+  
+  const existing=prog[c.id];
+  const predA=sm2(existing,1),predB=sm2(existing,3),predC=sm2(existing,5);
+  
+  wrap.innerHTML=`
+    <div class="qtop">
+      <button class="qback" onclick="showView('home')">‹</button>
+      <div class="qcnt">${cardIdx+1} / ${cardQueue.length}</div>
+      <button class="qflip" onclick="flipCard()">↻</button>
+    </div>
+    <div class="qprog"><div class="qfill" style="width:${pgPct}%"></div></div>
+    ${cardHtml}
+    ${cardFlipped?`
+      <div class="rate-lbl">評估熟練度</div>
+      <div class="rates">
+        <button class="rate rd" onclick="rateCard(1)">
+          <div class="rate-ico">✕</div>
+          <div class="rate-tx">忘記</div>
+          <div class="rate-sub">${nextReviewLabel(predA.interval)}</div>
+        </button>
+        <button class="rate gy" onclick="rateCard(3)">
+          <div class="rate-ico">◐</div>
+          <div class="rate-tx">模糊</div>
+          <div class="rate-sub">${nextReviewLabel(predB.interval)}</div>
+        </button>
+        <button class="rate gr" onclick="rateCard(5)">
+          <div class="rate-ico">✓</div>
+          <div class="rate-tx">熟練</div>
+          <div class="rate-sub">${nextReviewLabel(predC.interval)}</div>
+        </button>
+      </div>`:""}
+  `;
+}
+
+window.flipCard=()=>{cardFlipped=!cardFlipped;renderCard();};
+window.rateCard=(q)=>{
+  const c=cardQueue[cardIdx];
+  prog[c.id]=sm2(prog[c.id],q);
+  save();
+  cardFlipped=false;
+  cardIdx++;
+  renderCard();
+};
+window.showView=showView;
+
+// ==========================================
+// 新增
+// ==========================================
+function renderAdd(){
+  document.getElementById("saved-msg").innerHTML="";
+  const laws=[...new Set(cards.map(c=>c.law))];
+  const chipsEl=document.getElementById("law-chips");
+  chipsEl.innerHTML=laws.map(l=>`<button class="chip" data-law="${escapeHtml(l)}">${escapeHtml(l)}</button>`).join("");
+  chipsEl.querySelectorAll(".chip").forEach(b=>{
+    b.addEventListener("click",()=>{document.getElementById("f-law").value=b.dataset.law;});
+  });
+}
+
+function doAdd(andContinue){
+  const law=document.getElementById("f-law").value.trim();
+  const num=document.getElementById("f-num").value.trim();
+  const ttl=document.getElementById("f-ttl").value.trim();
+  const ctt=document.getElementById("f-ctt").value.trim();
+  
+  if(!law||!num||!ctt){
+    alert("請至少填寫「法律名稱」、「條號」、「內容」");
+    return;
+  }
+  
+  cards.push({id:uid(),law,num,title:ttl||"",content:ctt,createdAt:Date.now()});
+  save();
+  
+  if(andContinue){
+    document.getElementById("f-num").value="";
+    document.getElementById("f-ttl").value="";
+    document.getElementById("f-ctt").value="";
+    document.getElementById("saved-msg").innerHTML=`<div class="saved-msg">✓ 已儲存 "${escapeHtml(law)} ${escapeHtml(num)}"</div>`;
+    setTimeout(()=>{document.getElementById("saved-msg").innerHTML="";},2000);
+    document.getElementById("f-num").focus();
+  }else{
+    showView("home");
+  }
+}
+document.getElementById("btn-saveadd").addEventListener("click",()=>doAdd(true));
+document.getElementById("btn-savedone").addEventListener("click",()=>doAdd(false));
+document.getElementById("btn-start").addEventListener("click",()=>showView("card"));
+
+// ==========================================
+// 檢索
+// ==========================================
+function renderSearch(){
+  const laws=["全部",...new Set(cards.map(c=>c.law))];
+  const fxEl=document.getElementById("slfx");
+  fxEl.innerHTML=laws.map(l=>`<button class="scat${l===searchFilter?" on":""}" data-law="${escapeHtml(l)}">${escapeHtml(l)}</button>`).join("");
+  fxEl.querySelectorAll(".scat").forEach(b=>{
+    b.addEventListener("click",()=>{searchFilter=b.dataset.law;renderSearch();});
+  });
+  
+  let filtered=cards;
+  if(searchFilter!=="全部")filtered=filtered.filter(c=>c.law===searchFilter);
+  if(searchQuery){
+    const q=searchQuery.toLowerCase();
+    filtered=filtered.filter(c=>
+      c.num.toLowerCase().includes(q)||
+      c.title.toLowerCase().includes(q)||
+      c.content.toLowerCase().includes(q)||
+      c.law.toLowerCase().includes(q)
+    );
+  }
+  
+  document.getElementById("scnt").textContent=filtered.length+" 筆結果";
+  
+  const list=document.getElementById("slist");
+  if(filtered.length===0){
+    list.innerHTML=`<div class="empty" style="padding:40px 0"><div class="empty-msg">${cards.length===0?"還沒有條文":"沒有符合的條文"}</div></div>`;
+    return;
+  }
+  
+  list.innerHTML=filtered.map(c=>{
+    const isOpen=expandedCard===c.id;
+    const isEdit=editingCard===c.id;
+    const note=notes[c.id];
+    if(isEdit){
+      return `<div class="sitem"><div class="edit-form">
+        <input class="inp" id="ed-law-${c.id}" value="${escapeHtml(c.law)}" placeholder="法律">
+        <input class="inp" id="ed-num-${c.id}" value="${escapeHtml(c.num)}" placeholder="條號">
+        <input class="inp" id="ed-ttl-${c.id}" value="${escapeHtml(c.title)}" placeholder="標題">
+        <textarea class="inp txt" id="ed-ctt-${c.id}">${escapeHtml(c.content)}</textarea>
+        <div class="arow">
+          <button class="bs" onclick="cancelEdit()">取消</button>
+          <button class="bp" onclick="saveEdit('${c.id}')">儲存修改</button>
+        </div>
+      </div></div>`;
+    }
+    return `<div class="sitem">
+      <div class="sitem-h" onclick="toggleExpand('${c.id}')">
+        <div class="sitem-top">
+          <span class="sitem-law">${escapeHtml(c.law)}</span>
+          <span class="sitem-num">${escapeHtml(c.num)}</span>
+        </div>
+        ${c.title?`<div class="sitem-ttl">${escapeHtml(c.title)}</div>`:""}
+        ${note?`<div class="sitem-tag">• 已筆記</div>`:""}
+      </div>
+      <div class="sitem-b ${isOpen?"open":""}">
+        <div class="sitem-txt">${escapeHtml(c.content)}</div>
+        ${note?`<div class="qnote"><div class="qnote-lbl">My Note</div><div class="qnote-txt">${escapeHtml(note)}</div></div>`:""}
+        <div class="sitem-acts">
+          <button class="actbtn" onclick="startEdit('${c.id}')">✎ 編輯</button>
+          <button class="actbtn del" onclick="delCard('${c.id}')">✕ 刪除</button>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+document.getElementById("srch").addEventListener("input",e=>{
+  searchQuery=e.target.value;
+  renderSearch();
+});
+
+window.toggleExpand=(id)=>{
+  expandedCard=(expandedCard===id?null:id);
+  renderSearch();
+};
+window.startEdit=(id)=>{editingCard=id;renderSearch();};
+window.cancelEdit=()=>{editingCard=null;renderSearch();};
+window.saveEdit=(id)=>{
+  const c=cards.find(x=>x.id===id);
+  if(!c)return;
+  c.law=document.getElementById("ed-law-"+id).value.trim();
+  c.num=document.getElementById("ed-num-"+id).value.trim();
+  c.title=document.getElementById("ed-ttl-"+id).value.trim();
+  c.content=document.getElementById("ed-ctt-"+id).value.trim();
+  editingCard=null;
+  save();
+  renderSearch();
+  toast("已儲存");
+};
+window.delCard=(id)=>{
+  if(!confirm("確定刪除這條？複習進度與筆記也會一併刪除。"))return;
+  cards=cards.filter(c=>c.id!==id);
+  delete prog[id];
+  delete notes[id];
+  save();
+  renderSearch();
+  toast("已刪除");
+};
+
+// ==========================================
+// 筆記
+// ==========================================
+document.querySelectorAll(".nfilter").forEach(b=>{
+  b.addEventListener("click",()=>{noteFilter=b.dataset.nf;renderNotes();});
+});
+
+function renderNotes(){
+  document.querySelectorAll(".nfilter").forEach(b=>b.classList.toggle("on",b.dataset.nf===noteFilter));
+  document.getElementById("note-cnt").textContent=Object.keys(notes).length;
+  
+  let list=cards;
+  if(noteFilter==="has")list=list.filter(c=>notes[c.id]);
+  
+  const el=document.getElementById("nlist");
+  if(list.length===0){
+    el.innerHTML=`<div class="empty" style="padding:40px 0"><div class="empty-msg">${cards.length===0?"還沒有條文":"沒有筆記"}</div></div>`;
+    return;
+  }
+  
+  el.innerHTML=list.map(c=>{
+    const n=notes[c.id]||"";
+    const isEdit=editingNote===c.id;
+    let body;
+    if(isEdit){
+      body=`<div class="nedit">
+        <textarea class="inp" id="nt-${c.id}" placeholder="寫下你對這條的理解、案例、關鍵字、易混淆點…">${escapeHtml(n)}</textarea>
+        <div class="arow">
+          <button class="bs" onclick="cancelNote()">取消</button>
+          <button class="bp" onclick="saveNote('${c.id}')">儲存</button>
+        </div>
+      </div>`;
+    }else if(n){
+      body=`<div class="nitem-body" onclick="editNote('${c.id}')">${escapeHtml(n)}</div>`;
+    }else{
+      body=`<div class="nitem-empty" onclick="editNote('${c.id}')">+ 新增筆記</div>`;
+    }
+    return `<div class="nitem">
+      <div class="nitem-h">
+        <span class="sitem-law">${escapeHtml(c.law)}</span>
+        <span class="sitem-num">${escapeHtml(c.num)}</span>
+        ${c.title?`<span class="sitem-ttl">${escapeHtml(c.title)}</span>`:""}
+      </div>
+      ${body}
+    </div>`;
+  }).join("");
+}
+
+window.editNote=(id)=>{editingNote=id;renderNotes();};
+window.cancelNote=()=>{editingNote=null;renderNotes();};
+window.saveNote=(id)=>{
+  const txt=document.getElementById("nt-"+id).value.trim();
+  if(txt)notes[id]=txt;
+  else delete notes[id];
+  editingNote=null;
+  save();
+  renderNotes();
+  toast("已儲存筆記");
+};
+
+// ==========================================
+// 設定：匯出 / 匯入 / 同步 / 清空
+// ==========================================
+document.getElementById("btn-export").addEventListener("click",()=>{
+  const data={
+    version:1,
+    exportedAt:new Date().toISOString(),
+    cards,progress:prog,notes,
+  };
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download="勞動法複習_備份_"+new Date().toISOString().slice(0,10)+".json";
+  a.click();
+  URL.revokeObjectURL(url);
+  toast("已匯出備份");
+});
+
+document.getElementById("btn-import").addEventListener("click",()=>{
+  document.getElementById("fileimp").click();
+});
+document.getElementById("fileimp").addEventListener("change",async e=>{
+  const f=e.target.files[0];
+  if(!f)return;
+  try{
+    const txt=await f.text();
+    const data=JSON.parse(txt);
+    if(!Array.isArray(data.cards))throw new Error("JSON 格式不正確");
+    // 匯入卡片（避免 id 衝突）
+    const existingIds=new Set(cards.map(c=>c.id));
+    let added=0;
+    data.cards.forEach(c=>{
+      const newCard={
+        id:existingIds.has(c.id)?uid():(c.id||uid()),
+        law:c.law||"未分類",
+        num:c.num||"",
+        title:c.title||"",
+        content:c.content||"",
+        createdAt:c.createdAt||Date.now(),
+      };
+      cards.push(newCard);
+      added++;
+    });
+    save();
+    toast("成功匯入 "+added+" 條");
+    showView("home");
+  }catch(err){
+    alert("匯入失敗："+err.message);
+  }
+  e.target.value="";
+});
+
+document.getElementById("btn-sync").addEventListener("click",()=>{
+  save();
+  toast("同步中…");
+});
+
+document.getElementById("btn-clear").addEventListener("click",()=>{
+  if(!confirm("確定清空所有資料？這個動作無法復原！"))return;
+  if(!confirm("再確認一次：所有條文、進度、筆記都會刪除。"))return;
+  // 繞過第三層防護：直接清空本機計數
+  localStorage.removeItem("law-cards-count");
+  localStorage.removeItem("law-cards-backup");
+  localStorage.removeItem("law-prog-backup");
+  localStorage.removeItem("law-notes-backup");
+  cards=[];prog={};notes={};
+  save();
+  renderHome();
+  toast("已清空");
+});
+
+// ==========================================
+// 工具
+// ==========================================
+function escapeHtml(s){
+  if(s==null)return"";
+  return String(s).replace(/[&<>"']/g,m=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[m]));
+}
+
+// ==========================================
+// 啟動
+// ==========================================
+function boot(){
+  cards=window._cards||[];
+  prog=window._prog||{};
+  notes=window._notes||{};
+  updateSyncBadge();
+  renderHome();
+}
+if(window._fbReady)boot();
+else window._onFbReady=boot;
+</script>
+
+
+
+</body></html>
