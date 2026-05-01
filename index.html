@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0056)file:///Users/kumori67/Downloads/labor_law_review_3.html -->
+<!-- saved from url=(0056)file:///Users/kumori67/Downloads/labor_law_review_5.html -->
 <html lang="zh-TW"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -377,15 +377,6 @@ nav button.on{color:var(--al)}
 .qcontent .blk{display:inline-block;min-width:60px;background:var(--bd);color:transparent;border-radius:4px;padding:1px 8px;border-bottom:2px solid var(--ac);margin:0 2px;cursor:pointer;transition:all .2s}
 .qcontent .blk.show{background:var(--abg);color:var(--al);border-color:var(--ac);font-weight:700}
 
-/* API key 設定 */
-.key-input-wrap{display:flex;gap:6px;margin-top:6px}
-.key-input{flex:1;background:var(--s2);border:1px solid var(--bd2);border-radius:10px;padding:10px 12px;font-size:13px;font-family:"JetBrains Mono",monospace;outline:none}
-.key-input:focus{border-color:var(--ac)}
-.key-status{font-size:11px;color:var(--mu);margin-top:6px}
-.key-status.set{color:var(--gn)}
-.btn-keysave{background:var(--ac);color:#fff;border-radius:10px;padding:10px 14px;font-size:12px;font-weight:700}
-.btn-keyclear{background:var(--s2);border:1px solid var(--bd2);color:var(--mu);border-radius:10px;padding:10px 14px;font-size:12px}
-
 /* Toast */
 .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--ac);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:100;animation:toastin .3s}
 @keyframes toastin{from{opacity:0;transform:translateX(-50%) translateY(10px)}}
@@ -403,7 +394,7 @@ nav button.on{color:var(--al)}
     <div class="sync-row"><span class="sdot" id="sdot"></span><span class="stxt" id="stxt">已同步 · kumo</span></div>
   </div>
   <div class="hdiv"></div>
-  <div id="warnbox"></div>
+  <div id="warnbox"><div class="warn">Firebase 資料異常，已自動從本機備份還原 4 條。請確認後手動同步。</div></div>
   
   <div class="stats">
     <div class="stat"><div class="stn" id="st-total">4</div><div class="stl">總條文</div></div>
@@ -455,7 +446,11 @@ nav button.on{color:var(--al)}
     
     <div class="afield">
       <div class="albl">條文內容 *</div>
-      <textarea class="inp txt" id="f-ctt" placeholder="貼上完整條文內容…"></textarea>
+      <div class="ahint">用 [[ ]] 包住要挖空的字，例：「雇主不得 [[預告]] 勞工 [[終止勞動契約]]」</div>
+      <textarea class="inp txt" id="f-ctt" placeholder="貼上完整條文內容…
+
+範例：
+勞工每七日中應有 [[二日]] 之休息，其中 [[一日]] 為例假，[[一日]] 為休息日。"></textarea>
     </div>
     
     <div class="arow">
@@ -468,9 +463,9 @@ nav button.on{color:var(--al)}
 <!-- ============ PDF 匯入 ============ -->
 <section class="view" id="v-imp">
   <div class="imp-step" id="imp-step1">
-    <div class="imp-h">PDF 自動挖空</div>
+    <div class="imp-h">PDF 匯入條文</div>
     <div class="imp-sub">
-      上傳法條 PDF（如全國法規資料庫的勞基法），系統會自動切分條文、用 AI 挖出考點關鍵字，再讓你預覽確認後存入題庫。
+      上傳法條 PDF（如全國法規資料庫的勞基法），系統會自動切分條文並匯入題庫。匯入後可在「檢索」頁編輯每條，用 [[&nbsp;]] 標記要挖空的字。
     </div>
     <label class="dropzone" id="dropzone">
       <div class="dz-ico">⬆</div>
@@ -478,9 +473,6 @@ nav button.on{color:var(--al)}
       <div class="dz-s">支援單一 PDF 檔，建議使用全國法規資料庫官方版本</div>
       <input type="file" id="pdfinp" accept="application/pdf" style="display:none">
     </label>
-    <div id="key-warn" style="display:none" class="warn">
-      尚未設定 OpenAI API key，請先到「設定」頁面填入。
-    </div>
   </div>
   
   <div class="imp-step" id="imp-step2" style="display:none">
@@ -523,28 +515,6 @@ nav button.on{color:var(--al)}
 <section class="view" id="v-sets">
   <div class="stwrap">
     <div class="stgroup">
-      <div class="stgroup-t">OpenAI API</div>
-      <div class="stitem" style="flex-direction:column;align-items:stretch;gap:0">
-        <div style="display:flex;align-items:center;gap:12px">
-          <div class="stitem-ic">🔑</div>
-          <div class="stitem-main">
-            <div class="stitem-t">API Key</div>
-            <div class="stitem-s">用於 PDF 匯入時呼叫 GPT-4o-mini 自動挖空</div>
-          </div>
-        </div>
-        <div class="key-input-wrap">
-          <input type="password" class="key-input" id="key-input" placeholder="sk-proj-...">
-          <button class="btn-keysave" id="btn-keysave">儲存</button>
-        </div>
-        <div class="key-status" id="key-status">尚未設定 — PDF 匯入無法使用</div>
-        <div style="display:flex;gap:6px;margin-top:8px">
-          <button class="btn-keyclear" id="btn-keyshow">顯示/隱藏</button>
-          <button class="btn-keyclear" id="btn-keyclear">清除 Key</button>
-        </div>
-      </div>
-    </div>
-    
-    <div class="stgroup">
       <div class="stgroup-t">Data</div>
       <button class="stitem" id="btn-export">
         <div class="stitem-ic">⬇</div>
@@ -574,7 +544,7 @@ nav button.on{color:var(--al)}
       <div class="stabout">
         勞動法複習 v0.2<br><br>
         採用 SM-2 間隔重複演算法，資料同步於 Firestore 並有 localStorage 本機備援。<br>
-        PDF 匯入使用 GPT-4o-mini，挖空成本約每條 $0.0001 USD。<br><br>
+        支援克漏字模式：在條文內容中用 [[ ]] 包住要挖空的字。<br><br>
         用戶：kumo<br>
         建議定期使用「匯出備份」。
       </div>
@@ -672,7 +642,6 @@ function showView(v){
   else if(v==="search")renderSearch();
   else if(v==="notes")renderNotes();
   else if(v==="imp")renderImport();
-  else if(v==="sets")renderSettings();
 }
 document.querySelectorAll("nav button").forEach(b=>{
   b.addEventListener("click",()=>showView(b.dataset.v));
@@ -926,21 +895,24 @@ function doAdd(andContinue){
   const law=document.getElementById("f-law").value.trim();
   const num=document.getElementById("f-num").value.trim();
   const ttl=document.getElementById("f-ttl").value.trim();
-  const ctt=document.getElementById("f-ctt").value.trim();
+  const cttRaw=document.getElementById("f-ctt").value.trim();
   
-  if(!law||!num||!ctt){
+  if(!law||!num||!cttRaw){
     alert("請至少填寫「法律名稱」、「條號」、「內容」");
     return;
   }
   
-  cards.push({id:uid(),law,num,title:ttl||"",content:ctt,createdAt:Date.now()});
+  const{content,blanks}=parseClozeMarkdown(cttRaw);
+  
+  cards.push({id:uid(),law,num,title:ttl||"",content,blanks,createdAt:Date.now()});
   save();
   
   if(andContinue){
     document.getElementById("f-num").value="";
     document.getElementById("f-ttl").value="";
     document.getElementById("f-ctt").value="";
-    document.getElementById("saved-msg").innerHTML=`<div class="saved-msg">✓ 已儲存 "${escapeHtml(law)} ${escapeHtml(num)}"</div>`;
+    const blkInfo=blanks.length>0?`（含 ${blanks.length} 個挖空）`:"";
+    document.getElementById("saved-msg").innerHTML=`<div class="saved-msg">✓ 已儲存 "${escapeHtml(law)} ${escapeHtml(num)}"${blkInfo}</div>`;
     setTimeout(()=>{document.getElementById("saved-msg").innerHTML="";},2000);
     document.getElementById("f-num").focus();
   }else{
@@ -987,11 +959,15 @@ function renderSearch(){
     const isEdit=editingCard===c.id;
     const note=notes[c.id];
     if(isEdit){
+      const editMd=blanksToMarkdown(c.content,c.blanks||[]);
       return `<div class="sitem"><div class="edit-form">
         <input class="inp" id="ed-law-${c.id}" value="${escapeHtml(c.law)}" placeholder="法律">
         <input class="inp" id="ed-num-${c.id}" value="${escapeHtml(c.num)}" placeholder="條號">
         <input class="inp" id="ed-ttl-${c.id}" value="${escapeHtml(c.title)}" placeholder="標題">
-        <textarea class="inp txt" id="ed-ctt-${c.id}">${escapeHtml(c.content)}</textarea>
+        <textarea class="inp txt" id="ed-ctt-${c.id}" placeholder="條文內容（用 [[ ]] 包住要挖空的字）">${escapeHtml(editMd)}</textarea>
+        <div style="font-size:11px;color:var(--mu);line-height:1.6">
+          💡 用 <code style="background:var(--s2);padding:1px 4px;border-radius:3px">[[終止勞動契約]]</code> 包住要挖空的字。儲存時會自動解析。
+        </div>
         <div class="arow">
           <button class="bs" onclick="cancelEdit()">取消</button>
           <button class="bp" onclick="saveEdit('${c.id}')">儲存修改</button>
@@ -1036,11 +1012,14 @@ window.saveEdit=(id)=>{
   c.law=document.getElementById("ed-law-"+id).value.trim();
   c.num=document.getElementById("ed-num-"+id).value.trim();
   c.title=document.getElementById("ed-ttl-"+id).value.trim();
-  c.content=document.getElementById("ed-ctt-"+id).value.trim();
+  const cttRaw=document.getElementById("ed-ctt-"+id).value.trim();
+  const{content,blanks}=parseClozeMarkdown(cttRaw);
+  c.content=content;
+  c.blanks=blanks;
   editingCard=null;
   save();
   renderSearch();
-  toast("已儲存");
+  toast(blanks.length>0?`已儲存（含 ${blanks.length} 個挖空）`:"已儲存");
 };
 window.delCard=(id)=>{
   if(!confirm("確定刪除這條？複習進度與筆記也會一併刪除。"))return;
@@ -1187,6 +1166,58 @@ document.getElementById("btn-clear").addEventListener("click",()=>{
 // ==========================================
 // 工具
 // ==========================================
+// ==========================================
+// 克漏字標記解析
+// ==========================================
+// 輸入：「雇主不得 [[終止勞動契約]] ，應預告。」
+// 輸出：{
+//   content: "雇主不得 終止勞動契約 ，應預告。",
+//   blanks: [{text:"終止勞動契約", start:5, end:11}]
+// }
+function parseClozeMarkdown(text){
+  if(!text)return{content:"",blanks:[]};
+  // 先檢查有沒有 [[ ]]
+  if(!/\[\[[^\]]+\]\]/.test(text))return{content:text,blanks:[]};
+  
+  let content="";
+  const blanks=[];
+  let i=0;
+  while(i<text.length){
+    if(text.slice(i,i+2)==="[["){
+      const end=text.indexOf("]]",i+2);
+      if(end<0){
+        // 沒有閉合，當一般字元
+        content+=text[i];
+        i++;
+        continue;
+      }
+      const inner=text.slice(i+2,end);
+      const start=content.length;
+      content+=inner;
+      blanks.push({text:inner,start,end:start+inner.length});
+      i=end+2;
+    }else{
+      content+=text[i];
+      i++;
+    }
+  }
+  return{content,blanks};
+}
+
+// 反向：blanks → markdown（給編輯介面預填）
+function blanksToMarkdown(content,blanks){
+  if(!blanks||blanks.length===0)return content||"";
+  const sorted=[...blanks].sort((a,b)=>a.start-b.start);
+  let out="",cursor=0;
+  for(const b of sorted){
+    if(b.start>cursor)out+=content.slice(cursor,b.start);
+    out+="[["+content.slice(b.start,b.end)+"]]";
+    cursor=b.end;
+  }
+  if(cursor<content.length)out+=content.slice(cursor);
+  return out;
+}
+
 function escapeHtml(s){
   if(s==null)return"";
   return String(s).replace(/[&<>"']/g,m=>({
@@ -1195,68 +1226,11 @@ function escapeHtml(s){
 }
 
 // ==========================================
-// API Key 管理
-// ==========================================
-function getApiKey(){return localStorage.getItem("openai-key")||"";}
-function setApiKey(k){
-  if(k)localStorage.setItem("openai-key",k);
-  else localStorage.removeItem("openai-key");
-}
-function maskKey(k){
-  if(!k)return"";
-  if(k.length<14)return"****";
-  return k.slice(0,7)+"…"+k.slice(-4);
-}
-
-function renderSettings(){
-  const k=getApiKey();
-  const inp=document.getElementById("key-input");
-  const stat=document.getElementById("key-status");
-  inp.value="";
-  inp.placeholder=k?maskKey(k):"sk-proj-...";
-  if(k){
-    stat.textContent="✓ 已設定（"+maskKey(k)+"）";
-    stat.className="key-status set";
-  }else{
-    stat.textContent="尚未設定 — PDF 匯入無法使用";
-    stat.className="key-status";
-  }
-}
-
-document.getElementById("btn-keysave").addEventListener("click",()=>{
-  const v=document.getElementById("key-input").value.trim();
-  if(!v){toast("請先貼上 key");return;}
-  if(!v.startsWith("sk-")){
-    if(!confirm("這串不是 sk- 開頭，確定是 OpenAI API key 嗎？"))return;
-  }
-  setApiKey(v);
-  toast("已儲存 API key");
-  renderSettings();
-});
-document.getElementById("btn-keyclear").addEventListener("click",()=>{
-  if(!confirm("確定清除 API key？"))return;
-  setApiKey("");
-  toast("已清除");
-  renderSettings();
-});
-document.getElementById("btn-keyshow").addEventListener("click",()=>{
-  const inp=document.getElementById("key-input");
-  if(inp.type==="password"){
-    inp.type="text";
-    inp.value=getApiKey();
-  }else{
-    inp.type="password";
-    inp.value="";
-  }
-});
-
-// ==========================================
 // PDF 匯入：第一步畫面
 // ==========================================
 function renderImport(){
   document.getElementById("imp-step1").style.display="block";
   document.getElementById("imp-step2").style.display="none";
-  document.getElementById("key-warn").style.display=getApiKey()?"none":"block";
   impParsed=[];
   impAbort=false;
 }
@@ -1288,11 +1262,6 @@ dz.addEventListener("drop",e=>{
 // 步驟 A：解析 PDF → 切條文 → 顯示列表
 // ==========================================
 async function handlePdf(file){
-  if(!getApiKey()){
-    alert("請先到「設定」頁面設定 OpenAI API key");
-    return;
-  }
-  
   // 切換到 step2
   document.getElementById("imp-step1").style.display="none";
   document.getElementById("imp-step2").style.display="block";
@@ -1317,27 +1286,27 @@ async function handlePdf(file){
       return;
     }
     
+    const lawName=guessLawName(text)||"未指定";
     impParsed=articles.map(a=>({
       ...a,
-      law:guessLawName(text)||"未指定",
-      blanks:[],
-      markdown:"",
-      status:"wait", // wait | proc | ok | err
-      err:null,
+      law:lawName,
+      status:"ok", // 直接設為 ok（無需 AI 處理）
     }));
     
     // 3. 顯示列表
     document.getElementById("imp2-h").textContent="找到 "+articles.length+" 條";
-    document.getElementById("imp2-sub").textContent="點擊「開始 AI 挖空」開始處理";
-    document.getElementById("imp2-status").textContent="待處理";
+    document.getElementById("imp2-sub").textContent="法規：「"+lawName+"」　檢查無誤後可直接存入題庫";
+    document.getElementById("imp2-status").textContent="解析完成";
+    document.getElementById("imp2-pct").textContent="100%";
+    document.getElementById("imp2-fill").style.width="100%";
     renderImpList();
     
-    // 顯示開始按鈕
+    // 顯示存檔按鈕
     document.getElementById("imp2-acts").style.display="flex";
-    document.getElementById("btn-imp-save").textContent="開始 AI 挖空";
-    document.getElementById("btn-imp-save").onclick=runAiCloze;
+    document.getElementById("btn-imp-save").textContent="存入題庫（"+articles.length+" 條）";
+    document.getElementById("btn-imp-save").disabled=false;
+    document.getElementById("btn-imp-save").onclick=saveImpToLibrary;
     document.getElementById("btn-imp-cancel").onclick=()=>{
-      impAbort=true;
       renderImport();
     };
   }catch(err){
@@ -1450,156 +1419,28 @@ function renderMarkPreview(mark){
 }
 
 // ==========================================
-// 步驟 B：呼叫 OpenAI 逐條挖空
-// ==========================================
-async function runAiCloze(){
-  const key=getApiKey();
-  if(!key){alert("尚未設定 API key");return;}
-  
-  document.getElementById("btn-imp-save").disabled=true;
-  document.getElementById("btn-imp-save").textContent="處理中…";
-  document.getElementById("imp2-h").textContent="AI 挖空中…";
-  document.getElementById("imp2-sub").textContent="預估每條約 3-8 秒";
-  
-  let done=0;
-  for(let i=0;i<impParsed.length;i++){
-    if(impAbort)break;
-    const a=impParsed[i];
-    a.status="proc";
-    document.getElementById("imp2-status").textContent="處理 "+(i+1)+"/"+impParsed.length+"（"+a.num+"）";
-    document.getElementById("imp2-pct").textContent=Math.round(i/impParsed.length*100)+"%";
-    document.getElementById("imp2-fill").style.width=(i/impParsed.length*100)+"%";
-    renderImpList();
-    
-    try{
-      const res=await callOpenAi(a.content,key);
-      a.markdown=res.markdown;
-      a.blanks=parseBlanksFromMarkdown(res.markdown,a.content);
-      a.status="ok";
-    }catch(err){
-      console.warn("AI err",err);
-      a.status="err";
-      a.err=err.message;
-    }
-    done++;
-    renderImpList();
-  }
-  
-  document.getElementById("imp2-pct").textContent="100%";
-  document.getElementById("imp2-fill").style.width="100%";
-  document.getElementById("imp2-status").textContent="處理完成";
-  document.getElementById("imp2-h").textContent="預覽結果";
-  document.getElementById("imp2-sub").textContent="確認沒問題後存入題庫";
-  
-  document.getElementById("btn-imp-save").disabled=false;
-  document.getElementById("btn-imp-save").textContent="全部儲存到題庫";
-  document.getElementById("btn-imp-save").onclick=saveImpToLibrary;
-}
-
-// 呼叫 OpenAI Chat API
-async function callOpenAi(content,key){
-  const sys=`你是台灣法律考試準備專家。使用者會給你一段法條內容。
-請從中挑出最重要的考試關鍵字（法律名詞、要件詞語、效果詞語、特定數字/期間），用 [[ ]] 包起來標記為挖空目標。
-
-挑選原則：
-- 法律概念名詞：例如 雇主、勞工、定期契約、不定期契約、解僱、預告、職業災害、雇主代理人
-- 要件詞語：例如 不得、應、得、必要、有下列情形之一、虛偽意思表示、情節重大
-- 數字與期間：例如 三十日、一個月、二分之一、四十六小時
-- 一條挑 3-8 個關鍵字（不要太多也不要太少）
-- 不要挖普通連接詞、虛詞、標點
-
-請只回傳挖空後的條文內容（用 [[ ]] 包關鍵字），不要加任何說明、不要 markdown code block、不要任何前後綴。直接從條文第一個字開始。`;
-  
-  const body={
-    model:"gpt-4o-mini",
-    messages:[
-      {role:"system",content:sys},
-      {role:"user",content:content},
-    ],
-    temperature:0.3,
-  };
-  
-  const res=await fetch("https://api.openai.com/v1/chat/completions",{
-    method:"POST",
-    headers:{
-      "Content-Type":"application/json",
-      "Authorization":"Bearer "+key,
-    },
-    body:JSON.stringify(body),
-  });
-  
-  if(!res.ok){
-    const errText=await res.text();
-    let errMsg="HTTP "+res.status;
-    try{
-      const j=JSON.parse(errText);
-      errMsg=j.error?.message||errMsg;
-    }catch(_){}
-    throw new Error(errMsg);
-  }
-  
-  const json=await res.json();
-  const md=json.choices?.[0]?.message?.content?.trim()||"";
-  if(!md)throw new Error("AI 回傳空內容");
-  return{markdown:md};
-}
-
-// 從 [[ ]] markdown 解析 blanks → 對應到原文位置
-function parseBlanksFromMarkdown(mark,original){
-  const blanks=[];
-  // 拆 markdown 出 plain text 與 [[token]]
-  const parts=mark.split(/(\[\[[^\]]+\]\])/);
-  // 重組 plain text
-  let plain="";
-  const items=[];
-  parts.forEach(p=>{
-    if(p.startsWith("[[")&&p.endsWith("]]")){
-      const t=p.slice(2,-2);
-      items.push({type:"blank",text:t,plainStart:plain.length});
-      plain+=t;
-    }else{
-      plain+=p;
-    }
-  });
-  
-  // 嘗試找出每個 blank 在 original 中的位置
-  // 因為 AI 可能微調空白/標點，先用嚴格比對，失敗則用模糊
-  let cursor=0;
-  for(const it of items){
-    const idx=original.indexOf(it.text,cursor);
-    if(idx>=0){
-      blanks.push({text:it.text,start:idx,end:idx+it.text.length});
-      cursor=idx+it.text.length;
-    }
-    // 找不到就跳過該 blank（不影響其他）
-  }
-  return blanks;
-}
-
-// ==========================================
-// 步驟 C：存入題庫
+// 步驟 B：存入題庫
 // ==========================================
 function saveImpToLibrary(){
-  const ok=impParsed.filter(a=>a.status==="ok"&&a.blanks.length>0);
-  if(ok.length===0){
-    alert("沒有可儲存的條文（需要至少一個成功挖空的）");
+  if(impParsed.length===0){
+    alert("沒有可儲存的條文");
     return;
   }
-  if(!confirm("將儲存 "+ok.length+" 條到題庫，繼續嗎？"))return;
+  if(!confirm("將儲存 "+impParsed.length+" 條到題庫，繼續嗎？\n\n（之後可在「檢索」頁編輯，用 [[ ]] 標記要挖空的字）"))return;
   
-  ok.forEach(a=>{
+  impParsed.forEach(a=>{
     cards.push({
       id:uid(),
       law:a.law,
       num:a.num,
       title:a.title||"",
       content:a.content,
-      blanks:a.blanks,
+      blanks:[], // 預設沒有挖空，使用者自己編輯時加 [[ ]] 即可
       createdAt:Date.now(),
     });
   });
   save();
-  toast("已新增 "+ok.length+" 條");
+  toast("已新增 "+impParsed.length+" 條");
   renderImport();
   showView("home");
 }
@@ -1611,7 +1452,6 @@ function boot(){
   notes=window._notes||{};
   updateSyncBadge();
   renderHome();
-  renderSettings();
 }
 if(window._fbReady)boot();
 else window._onFbReady=boot;
