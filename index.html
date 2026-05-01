@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0056)file:///Users/kumori67/Downloads/labor_law_review_5.html -->
+<!-- saved from url=(0056)file:///Users/kumori67/Downloads/labor_law_review_8.html -->
 <html lang="zh-TW"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -352,11 +352,24 @@ nav button.on{color:var(--al)}
 .imp-prog-bar{height:6px;background:var(--bd);border-radius:99px;overflow:hidden}
 .imp-prog-fill{height:100%;background:linear-gradient(90deg,var(--ac),var(--al));transition:width .3s}
 .imp-list{display:flex;flex-direction:column;gap:8px;margin-top:14px;max-height:50vh;overflow-y:auto}
-.imp-row{background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.imp-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 14px;background:var(--s1);border:1px solid var(--bd);border-radius:10px;margin-top:10px;flex-wrap:wrap}
+.imp-tb-info{font-size:12px;color:var(--m2)}
+.imp-tb-info b{color:var(--al);font-family:"JetBrains Mono",monospace}
+.imp-tb-acts{display:flex;gap:6px}
+.imp-tb-btn{background:var(--s2);border:1px solid var(--bd2);color:var(--mu);padding:5px 10px;border-radius:8px;font-size:11px;letter-spacing:1px}
+.imp-tb-btn:active{border-color:var(--ac);color:var(--al)}
+.imp-row{background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;transition:opacity .15s}
+.imp-row.unchecked{opacity:.4}
 .imp-row.err{border-color:var(--rd)}
 .imp-row.ok{border-color:rgba(34,197,94,.4)}
-.imp-row-h{display:flex;align-items:baseline;gap:8px}
-.imp-row-num{font-size:13px;font-weight:700}
+.imp-row-h{display:flex;align-items:center;gap:10px}
+.imp-row-cb{width:18px;height:18px;border:2px solid var(--bd2);border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;background:var(--s2)}
+.imp-row-cb.on{background:var(--ac);border-color:var(--ac)}
+.imp-row-cb.on::after{content:"✓";color:#fff;font-size:13px;font-weight:900}
+.imp-row-main{flex:1;display:flex;align-items:baseline;gap:8px;min-width:0;cursor:pointer}
+.imp-row-num{font-size:13px;font-weight:700;flex-shrink:0}
+.imp-row-ttl{font-size:11px;color:var(--mu);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.imp-row-toggle{font-size:14px;color:var(--mu);padding:2px 6px;cursor:pointer}
 .imp-row-st{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700}
 .imp-row-st.wait{color:var(--mu)}
 .imp-row-st.proc{color:var(--al)}
@@ -365,6 +378,14 @@ nav button.on{color:var(--al)}
 .imp-row-prev{font-size:12px;color:var(--mu);line-height:1.6;font-family:"Noto Serif TC",serif}
 .imp-row-mark{font-size:13px;line-height:1.8;font-family:"Noto Serif TC",serif}
 .imp-row-mark .blk{background:var(--abg);color:var(--al);padding:1px 6px;border-radius:4px;border:1px solid var(--abr);font-weight:700}
+.imp-row-body{display:none;flex-direction:column;gap:8px;border-top:1px solid var(--bd);padding-top:10px;margin-top:4px}
+.imp-row-body.open{display:flex}
+.imp-row-body .inp{font-size:13px;padding:8px 12px}
+.imp-row-body textarea.inp{min-height:120px;font-family:"Noto Serif TC",serif;line-height:1.7}
+.imp-row-flds{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.imp-row-fldlbl{font-size:10px;color:var(--mu);letter-spacing:1px;margin-bottom:2px;text-transform:uppercase;font-weight:700}
+.imp-row-rmbtn{align-self:flex-start;background:transparent;border:1px solid rgba(239,68,68,.3);color:var(--rd);padding:5px 10px;border-radius:8px;font-size:11px;letter-spacing:1px;margin-top:4px}
+.imp-row-rmbtn:active{background:rgba(239,68,68,.1)}
 .imp-acts{display:flex;gap:8px;margin-top:14px}
 .imp-acts .bs,.imp-acts .bp{flex:1}
 
@@ -394,24 +415,24 @@ nav button.on{color:var(--al)}
     <div class="sync-row"><span class="sdot" id="sdot"></span><span class="stxt" id="stxt">已同步 · kumo</span></div>
   </div>
   <div class="hdiv"></div>
-  <div id="warnbox"><div class="warn">Firebase 資料異常，已自動從本機備份還原 4 條。請確認後手動同步。</div></div>
+  <div id="warnbox"></div>
   
   <div class="stats">
-    <div class="stat"><div class="stn" id="st-total">4</div><div class="stl">總條文</div></div>
-    <div class="stat"><div class="stn" id="st-learned">2</div><div class="stl">已接觸</div></div>
+    <div class="stat"><div class="stn" id="st-total">114</div><div class="stl">總條文</div></div>
+    <div class="stat"><div class="stn" id="st-learned">0</div><div class="stl">已接觸</div></div>
     <div class="stat"><div class="stn" id="st-master">0</div><div class="stl">已熟練</div></div>
   </div>
   
   <div class="sh">今日複習</div>
   <div class="today">
     <div class="today-lbl">Due Today</div>
-    <div class="today-n" id="today-n">4</div>
+    <div class="today-n" id="today-n">114</div>
     <div class="today-desc" id="today-desc">張卡片等待複習</div>
     <button class="bp" id="btn-start">開始複習 →</button>
   </div>
   
   <div class="sh" id="cats-h" style="display: block;">法規分布</div>
-  <div class="cats" id="cats-list"><div class="catrow"><div class="catname">勞基法</div><div class="catnum">1</div></div><div class="catrow"><div class="catname">行程法</div><div class="catnum">3</div></div></div>
+  <div class="cats" id="cats-list"><div class="catrow"><div class="catname">勞動基準法</div><div class="catnum">114</div></div></div>
 </section>
 
 <!-- ============ 閃卡 ============ -->
@@ -481,6 +502,14 @@ nav button.on{color:var(--al)}
     <div class="imp-prog">
       <div class="imp-prog-t"><span id="imp2-status">準備中</span><span id="imp2-pct">0%</span></div>
       <div class="imp-prog-bar"><div class="imp-prog-fill" id="imp2-fill" style="width:0"></div></div>
+    </div>
+    <div class="imp-toolbar" id="imp2-toolbar" style="display:none">
+      <div class="imp-tb-info">已勾選 <b id="imp-checked-count">0</b> / <span id="imp-total-count">0</span> 條</div>
+      <div class="imp-tb-acts">
+        <button class="imp-tb-btn" id="btn-imp-all">全選</button>
+        <button class="imp-tb-btn" id="btn-imp-none">全不選</button>
+        <button class="imp-tb-btn" id="btn-imp-invert">反選</button>
+      </div>
     </div>
     <div class="imp-list" id="imp2-list"></div>
     <div class="imp-acts" id="imp2-acts" style="display:none">
@@ -1231,6 +1260,8 @@ function escapeHtml(s){
 function renderImport(){
   document.getElementById("imp-step1").style.display="block";
   document.getElementById("imp-step2").style.display="none";
+  const tb=document.getElementById("imp2-toolbar");
+  if(tb)tb.style.display="none";
   impParsed=[];
   impAbort=false;
 }
@@ -1290,25 +1321,29 @@ async function handlePdf(file){
     impParsed=articles.map(a=>({
       ...a,
       law:lawName,
-      status:"ok", // 直接設為 ok（無需 AI 處理）
+      selected:true, // 預設全勾選
+      expanded:false,
+      status:"ok",
     }));
     
     // 3. 顯示列表
     document.getElementById("imp2-h").textContent="找到 "+articles.length+" 條";
-    document.getElementById("imp2-sub").textContent="法規：「"+lawName+"」　檢查無誤後可直接存入題庫";
+    document.getElementById("imp2-sub").textContent="法規：「"+lawName+"」　請勾選要匯入的條文（可點展開編輯）";
     document.getElementById("imp2-status").textContent="解析完成";
     document.getElementById("imp2-pct").textContent="100%";
     document.getElementById("imp2-fill").style.width="100%";
+    document.getElementById("imp2-toolbar").style.display="flex";
+    document.getElementById("imp-total-count").textContent=articles.length;
     renderImpList();
     
     // 顯示存檔按鈕
     document.getElementById("imp2-acts").style.display="flex";
-    document.getElementById("btn-imp-save").textContent="存入題庫（"+articles.length+" 條）";
     document.getElementById("btn-imp-save").disabled=false;
     document.getElementById("btn-imp-save").onclick=saveImpToLibrary;
     document.getElementById("btn-imp-cancel").onclick=()=>{
       renderImport();
     };
+    updateImpSaveBtn();
   }catch(err){
     console.error(err);
     alert("解析失敗："+err.message);
@@ -1391,21 +1426,121 @@ function splitArticles(text){
 function renderImpList(){
   const el=document.getElementById("imp2-list");
   el.innerHTML=impParsed.map((a,i)=>{
-    const stCls=a.status;
-    const stTxt={wait:"待處理",proc:"處理中",ok:"完成",err:"失敗"}[a.status];
-    const preview=a.markdown?`<div class="imp-row-mark">${renderMarkPreview(a.markdown)}</div>`
-                  :`<div class="imp-row-prev">${escapeHtml(a.content.slice(0,80))}${a.content.length>80?"…":""}</div>`;
-    return `<div class="imp-row ${stCls}">
+    const cbCls=a.selected?"on":"";
+    const rowCls=a.selected?"":"unchecked";
+    const bodyCls=a.expanded?"open":"";
+    const ttl=a.title?a.title:"";
+    const previewText=a.content.slice(0,60)+(a.content.length>60?"…":"");
+    
+    return `<div class="imp-row ${rowCls}" data-i="${i}">
       <div class="imp-row-h">
-        <span class="imp-row-num">${escapeHtml(a.num)}</span>
-        ${a.title?`<span style="font-size:11px;color:var(--mu)">${escapeHtml(a.title)}</span>`:""}
-        <span class="imp-row-st ${stCls}" style="margin-left:auto">${stTxt}</span>
+        <div class="imp-row-cb ${cbCls}" onclick="toggleImpRow(${i},event)"></div>
+        <div class="imp-row-main" onclick="toggleImpExpand(${i})">
+          <span class="imp-row-num">${escapeHtml(a.num)}</span>
+          <span class="imp-row-ttl">${escapeHtml(ttl||previewText)}</span>
+        </div>
+        <span class="imp-row-toggle" onclick="toggleImpExpand(${i})">${a.expanded?"▴":"▾"}</span>
       </div>
-      ${preview}
-      ${a.err?`<div style="font-size:11px;color:var(--rd)">${escapeHtml(a.err)}</div>`:""}
+      <div class="imp-row-body ${bodyCls}">
+        <div class="imp-row-flds">
+          <div>
+            <div class="imp-row-fldlbl">法律</div>
+            <input class="inp" id="imp-law-${i}" value="${escapeHtml(a.law)}" oninput="updateImpField(${i},'law',this.value)">
+          </div>
+          <div>
+            <div class="imp-row-fldlbl">條號</div>
+            <input class="inp" id="imp-num-${i}" value="${escapeHtml(a.num)}" oninput="updateImpField(${i},'num',this.value)">
+          </div>
+        </div>
+        <div>
+          <div class="imp-row-fldlbl">標題（選填）</div>
+          <input class="inp" id="imp-ttl-${i}" value="${escapeHtml(ttl)}" oninput="updateImpField(${i},'title',this.value)" placeholder="這條的重點">
+        </div>
+        <div>
+          <div class="imp-row-fldlbl">條文內容</div>
+          <textarea class="inp" id="imp-ctt-${i}" oninput="updateImpField(${i},'content',this.value)">${escapeHtml(a.content)}</textarea>
+        </div>
+        <button class="imp-row-rmbtn" onclick="removeImpRow(${i})">✕ 從清單移除這條</button>
+      </div>
     </div>`;
   }).join("");
+  updateImpSaveBtn();
 }
+
+// 工具：更新存檔按鈕文字 + 已勾選數
+function updateImpSaveBtn(){
+  const checked=impParsed.filter(a=>a.selected).length;
+  const cnt=document.getElementById("imp-checked-count");
+  if(cnt)cnt.textContent=checked;
+  const btn=document.getElementById("btn-imp-save");
+  if(btn){
+    if(checked===0){
+      btn.textContent="尚未勾選任何條";
+      btn.disabled=true;
+    }else{
+      btn.textContent="存入題庫（"+checked+" 條）";
+      btn.disabled=false;
+    }
+  }
+}
+
+window.toggleImpRow=(i,e)=>{
+  if(e)e.stopPropagation();
+  impParsed[i].selected=!impParsed[i].selected;
+  // 不重繪整個列表（保留輸入框焦點），只更新該列的 class 與計數
+  const row=document.querySelector(`.imp-row[data-i="${i}"]`);
+  if(row){
+    const cb=row.querySelector(".imp-row-cb");
+    if(impParsed[i].selected){
+      cb.classList.add("on");
+      row.classList.remove("unchecked");
+    }else{
+      cb.classList.remove("on");
+      row.classList.add("unchecked");
+    }
+  }
+  updateImpSaveBtn();
+};
+
+window.toggleImpExpand=(i)=>{
+  impParsed[i].expanded=!impParsed[i].expanded;
+  const row=document.querySelector(`.imp-row[data-i="${i}"]`);
+  if(row){
+    const body=row.querySelector(".imp-row-body");
+    const tg=row.querySelector(".imp-row-toggle");
+    if(impParsed[i].expanded){
+      body.classList.add("open");
+      tg.textContent="▴";
+    }else{
+      body.classList.remove("open");
+      tg.textContent="▾";
+    }
+  }
+};
+
+window.updateImpField=(i,field,value)=>{
+  impParsed[i][field]=value;
+  // 標題改了要更新標頭顯示
+  if(field==="title"||field==="num"){
+    const row=document.querySelector(`.imp-row[data-i="${i}"]`);
+    if(row){
+      const numEl=row.querySelector(".imp-row-num");
+      const ttlEl=row.querySelector(".imp-row-ttl");
+      if(field==="num"&&numEl)numEl.textContent=value;
+      if(field==="title"&&ttlEl){
+        const a=impParsed[i];
+        ttlEl.textContent=a.title||a.content.slice(0,60);
+      }
+    }
+  }
+};
+
+window.removeImpRow=(i)=>{
+  if(!confirm("確定從匯入清單移除這條？"))return;
+  impParsed.splice(i,1);
+  document.getElementById("imp-total-count").textContent=impParsed.length;
+  renderImpList();
+};
 
 // markdown ([[挖空字]]) → 預覽 HTML
 function renderMarkPreview(mark){
@@ -1422,28 +1557,51 @@ function renderMarkPreview(mark){
 // 步驟 B：存入題庫
 // ==========================================
 function saveImpToLibrary(){
-  if(impParsed.length===0){
-    alert("沒有可儲存的條文");
+  const picked=impParsed.filter(a=>a.selected);
+  if(picked.length===0){
+    alert("還沒勾選任何條");
     return;
   }
-  if(!confirm("將儲存 "+impParsed.length+" 條到題庫，繼續嗎？\n\n（之後可在「檢索」頁編輯，用 [[ ]] 標記要挖空的字）"))return;
+  // 驗證每條
+  for(const a of picked){
+    if(!a.law||!a.num||!a.content){
+      alert(`「${a.num||"未命名"}」缺少法律、條號或內容，請補齊或取消勾選。`);
+      return;
+    }
+  }
+  if(!confirm("將儲存 "+picked.length+" 條到題庫，繼續嗎？\n\n（之後可在「檢索」頁編輯，用 [[ ]] 標記要挖空的字）"))return;
   
-  impParsed.forEach(a=>{
+  picked.forEach(a=>{
+    const{content,blanks}=parseClozeMarkdown(a.content);
     cards.push({
       id:uid(),
-      law:a.law,
-      num:a.num,
-      title:a.title||"",
-      content:a.content,
-      blanks:[], // 預設沒有挖空，使用者自己編輯時加 [[ ]] 即可
+      law:a.law.trim(),
+      num:a.num.trim(),
+      title:(a.title||"").trim(),
+      content,
+      blanks,
       createdAt:Date.now(),
     });
   });
   save();
-  toast("已新增 "+impParsed.length+" 條");
+  toast("已新增 "+picked.length+" 條");
   renderImport();
   showView("home");
 }
+
+// 全選 / 全不選 / 反選
+document.getElementById("btn-imp-all").addEventListener("click",()=>{
+  impParsed.forEach(a=>a.selected=true);
+  renderImpList();
+});
+document.getElementById("btn-imp-none").addEventListener("click",()=>{
+  impParsed.forEach(a=>a.selected=false);
+  renderImpList();
+});
+document.getElementById("btn-imp-invert").addEventListener("click",()=>{
+  impParsed.forEach(a=>a.selected=!a.selected);
+  renderImpList();
+});
 
 
 function boot(){
