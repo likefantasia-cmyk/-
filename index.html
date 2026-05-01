@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0054)file:///Users/kumori67/Downloads/labor_law_review.html -->
+<!-- saved from url=(0056)file:///Users/kumori67/Downloads/labor_law_review_3.html -->
 <html lang="zh-TW"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -10,6 +10,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com/">
 <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
 <link href="./index_files/css2" rel="stylesheet">
+
+<!-- pdf.js (mozilla) - PDF 文字抽取 -->
+<script src="./index_files/pdf.min.mjs" type="module"></script>
+<script type="module">
+import * as pdfjsLib from "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.mjs";
+pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.mjs";
+window.pdfjsLib=pdfjsLib;
+</script>
 
 <!-- ============================================================
      Firebase 初始化（跟 WordLens 同樣的三層備援模式）
@@ -159,8 +167,8 @@ input,textarea,select{font-family:inherit;color:var(--tx)}
 
 /* 底部導覽 */
 nav{display:flex;background:var(--s1);border-top:1px solid var(--bd);order:2;flex-shrink:0}
-nav button{flex:1;padding:10px 1px 12px;font-size:9px;font-weight:600;color:var(--mu);text-transform:uppercase;display:flex;flex-direction:column;align-items:center;gap:3px;letter-spacing:.3px}
-nav button .ni{font-size:19px}
+nav button{flex:1;padding:9px 1px 11px;font-size:8.5px;font-weight:600;color:var(--mu);text-transform:uppercase;display:flex;flex-direction:column;align-items:center;gap:3px;letter-spacing:.2px}
+nav button .ni{font-size:17px}
 nav button.on{color:var(--al)}
 
 .view{flex:1;overflow-y:auto;display:none;flex-direction:column}
@@ -193,11 +201,11 @@ nav button.on{color:var(--al)}
 
 /* 今日複習大卡 */
 .today{margin:0 24px 20px;background:var(--s1);border:1px solid var(--bd);border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:14px;position:relative;overflow:hidden}
-.today::before{content:"";position:absolute;top:-40px;right:-40px;width:120px;height:120px;background:var(--abg);border-radius:50%}
+.today::before{content:"";position:absolute;top:-30px;right:-30px;width:100px;height:100px;background:var(--abg);border-radius:50%;pointer-events:none}
 .today-lbl{font-size:11px;color:var(--mu);letter-spacing:1.5px;text-transform:uppercase;font-weight:700;position:relative}
 .today-n{font-family:"Playfair Display",serif;font-size:64px;color:var(--al);line-height:1;position:relative}
 .today-desc{font-size:13px;color:var(--m2);position:relative}
-.bp{background:var(--ac);color:#fff;border-radius:14px;padding:15px;font-size:15px;font-weight:700;width:100%;letter-spacing:.5px}
+.bp{background:var(--ac);color:#fff;border-radius:14px;padding:15px;font-size:15px;font-weight:700;width:100%;letter-spacing:.5px;position:relative;z-index:2}
 .bp:active{opacity:.8}
 .bp:disabled{opacity:.35;cursor:not-allowed}
 
@@ -329,6 +337,55 @@ nav button.on{color:var(--al)}
 .stitem-s{font-size:11px;color:var(--mu);margin-top:2px}
 .stabout{background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:14px 16px;font-size:12px;color:var(--m2);line-height:1.7}
 
+/* PDF 匯入介面 */
+.imp-step{padding:20px 24px}
+.imp-h{font-size:18px;font-weight:700;margin-bottom:6px}
+.imp-sub{font-size:12px;color:var(--mu);margin-bottom:16px;line-height:1.6}
+.dropzone{border:2px dashed var(--bd2);border-radius:14px;padding:30px 16px;text-align:center;background:var(--s1);cursor:pointer;transition:all .2s}
+.dropzone:active{border-color:var(--ac);background:var(--abg)}
+.dropzone.dragover{border-color:var(--ac);background:var(--abg)}
+.dz-ico{font-size:36px;color:var(--mu);margin-bottom:8px}
+.dz-t{font-size:14px;color:var(--m2);margin-bottom:4px}
+.dz-s{font-size:11px;color:var(--mu)}
+.imp-prog{margin:16px 0;background:var(--s1);border:1px solid var(--bd);border-radius:14px;padding:16px}
+.imp-prog-t{font-size:13px;color:var(--m2);margin-bottom:8px;display:flex;justify-content:space-between}
+.imp-prog-bar{height:6px;background:var(--bd);border-radius:99px;overflow:hidden}
+.imp-prog-fill{height:100%;background:linear-gradient(90deg,var(--ac),var(--al));transition:width .3s}
+.imp-list{display:flex;flex-direction:column;gap:8px;margin-top:14px;max-height:50vh;overflow-y:auto}
+.imp-row{background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.imp-row.err{border-color:var(--rd)}
+.imp-row.ok{border-color:rgba(34,197,94,.4)}
+.imp-row-h{display:flex;align-items:baseline;gap:8px}
+.imp-row-num{font-size:13px;font-weight:700}
+.imp-row-st{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700}
+.imp-row-st.wait{color:var(--mu)}
+.imp-row-st.proc{color:var(--al)}
+.imp-row-st.ok{color:var(--gn)}
+.imp-row-st.err{color:var(--rd)}
+.imp-row-prev{font-size:12px;color:var(--mu);line-height:1.6;font-family:"Noto Serif TC",serif}
+.imp-row-mark{font-size:13px;line-height:1.8;font-family:"Noto Serif TC",serif}
+.imp-row-mark .blk{background:var(--abg);color:var(--al);padding:1px 6px;border-radius:4px;border:1px solid var(--abr);font-weight:700}
+.imp-acts{display:flex;gap:8px;margin-top:14px}
+.imp-acts .bs,.imp-acts .bp{flex:1}
+
+/* 模式切換 */
+.mode-tab{display:flex;gap:8px;background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:4px;margin-bottom:12px}
+.mode-tab button{flex:1;padding:8px;font-size:12px;color:var(--mu);border-radius:8px;letter-spacing:1px}
+.mode-tab button.on{background:var(--abg);color:var(--al);font-weight:700}
+
+/* 克漏字樣式 */
+.qcontent .blk{display:inline-block;min-width:60px;background:var(--bd);color:transparent;border-radius:4px;padding:1px 8px;border-bottom:2px solid var(--ac);margin:0 2px;cursor:pointer;transition:all .2s}
+.qcontent .blk.show{background:var(--abg);color:var(--al);border-color:var(--ac);font-weight:700}
+
+/* API key 設定 */
+.key-input-wrap{display:flex;gap:6px;margin-top:6px}
+.key-input{flex:1;background:var(--s2);border:1px solid var(--bd2);border-radius:10px;padding:10px 12px;font-size:13px;font-family:"JetBrains Mono",monospace;outline:none}
+.key-input:focus{border-color:var(--ac)}
+.key-status{font-size:11px;color:var(--mu);margin-top:6px}
+.key-status.set{color:var(--gn)}
+.btn-keysave{background:var(--ac);color:#fff;border-radius:10px;padding:10px 14px;font-size:12px;font-weight:700}
+.btn-keyclear{background:var(--s2);border:1px solid var(--bd2);color:var(--mu);border-radius:10px;padding:10px 14px;font-size:12px}
+
 /* Toast */
 .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--ac);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:100;animation:toastin .3s}
 @keyframes toastin{from{opacity:0;transform:translateX(-50%) translateY(10px)}}
@@ -349,21 +406,21 @@ nav button.on{color:var(--al)}
   <div id="warnbox"></div>
   
   <div class="stats">
-    <div class="stat"><div class="stn" id="st-total">0</div><div class="stl">總條文</div></div>
-    <div class="stat"><div class="stn" id="st-learned">0</div><div class="stl">已接觸</div></div>
+    <div class="stat"><div class="stn" id="st-total">4</div><div class="stl">總條文</div></div>
+    <div class="stat"><div class="stn" id="st-learned">2</div><div class="stl">已接觸</div></div>
     <div class="stat"><div class="stn" id="st-master">0</div><div class="stl">已熟練</div></div>
   </div>
   
   <div class="sh">今日複習</div>
   <div class="today">
     <div class="today-lbl">Due Today</div>
-    <div class="today-n" id="today-n">0</div>
-    <div class="today-desc" id="today-desc">還沒有任何條文</div>
-    <button class="bp" id="btn-start">先去新增條文 →</button>
+    <div class="today-n" id="today-n">4</div>
+    <div class="today-desc" id="today-desc">張卡片等待複習</div>
+    <button class="bp" id="btn-start">開始複習 →</button>
   </div>
   
-  <div class="sh" id="cats-h" style="display:none">法規分布</div>
-  <div class="cats" id="cats-list"></div>
+  <div class="sh" id="cats-h" style="display: block;">法規分布</div>
+  <div class="cats" id="cats-list"><div class="catrow"><div class="catname">勞基法</div><div class="catnum">1</div></div><div class="catrow"><div class="catname">行程法</div><div class="catnum">3</div></div></div>
 </section>
 
 <!-- ============ 閃卡 ============ -->
@@ -408,6 +465,39 @@ nav button.on{color:var(--al)}
   </div>
 </section>
 
+<!-- ============ PDF 匯入 ============ -->
+<section class="view" id="v-imp">
+  <div class="imp-step" id="imp-step1">
+    <div class="imp-h">PDF 自動挖空</div>
+    <div class="imp-sub">
+      上傳法條 PDF（如全國法規資料庫的勞基法），系統會自動切分條文、用 AI 挖出考點關鍵字，再讓你預覽確認後存入題庫。
+    </div>
+    <label class="dropzone" id="dropzone">
+      <div class="dz-ico">⬆</div>
+      <div class="dz-t">點擊或拖曳 PDF 到這裡</div>
+      <div class="dz-s">支援單一 PDF 檔，建議使用全國法規資料庫官方版本</div>
+      <input type="file" id="pdfinp" accept="application/pdf" style="display:none">
+    </label>
+    <div id="key-warn" style="display:none" class="warn">
+      尚未設定 OpenAI API key，請先到「設定」頁面填入。
+    </div>
+  </div>
+  
+  <div class="imp-step" id="imp-step2" style="display:none">
+    <div class="imp-h" id="imp2-h">解析中…</div>
+    <div class="imp-sub" id="imp2-sub">正在從 PDF 抽取文字</div>
+    <div class="imp-prog">
+      <div class="imp-prog-t"><span id="imp2-status">準備中</span><span id="imp2-pct">0%</span></div>
+      <div class="imp-prog-bar"><div class="imp-prog-fill" id="imp2-fill" style="width:0"></div></div>
+    </div>
+    <div class="imp-list" id="imp2-list"></div>
+    <div class="imp-acts" id="imp2-acts" style="display:none">
+      <button class="bs" id="btn-imp-cancel">放棄</button>
+      <button class="bp" id="btn-imp-save">全部儲存到題庫</button>
+    </div>
+  </div>
+</section>
+
 <!-- ============ 檢索 ============ -->
 <section class="view" id="v-search">
   <div class="swrap">
@@ -432,6 +522,28 @@ nav button.on{color:var(--al)}
 <!-- ============ 設定 ============ -->
 <section class="view" id="v-sets">
   <div class="stwrap">
+    <div class="stgroup">
+      <div class="stgroup-t">OpenAI API</div>
+      <div class="stitem" style="flex-direction:column;align-items:stretch;gap:0">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div class="stitem-ic">🔑</div>
+          <div class="stitem-main">
+            <div class="stitem-t">API Key</div>
+            <div class="stitem-s">用於 PDF 匯入時呼叫 GPT-4o-mini 自動挖空</div>
+          </div>
+        </div>
+        <div class="key-input-wrap">
+          <input type="password" class="key-input" id="key-input" placeholder="sk-proj-...">
+          <button class="btn-keysave" id="btn-keysave">儲存</button>
+        </div>
+        <div class="key-status" id="key-status">尚未設定 — PDF 匯入無法使用</div>
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <button class="btn-keyclear" id="btn-keyshow">顯示/隱藏</button>
+          <button class="btn-keyclear" id="btn-keyclear">清除 Key</button>
+        </div>
+      </div>
+    </div>
+    
     <div class="stgroup">
       <div class="stgroup-t">Data</div>
       <button class="stitem" id="btn-export">
@@ -460,8 +572,9 @@ nav button.on{color:var(--al)}
     <div class="stgroup">
       <div class="stgroup-t">About</div>
       <div class="stabout">
-        勞動法複習 v0.1<br><br>
-        採用 SM-2 間隔重複演算法，資料同步於 Firestore 並有 localStorage 本機備援。<br><br>
+        勞動法複習 v0.2<br><br>
+        採用 SM-2 間隔重複演算法，資料同步於 Firestore 並有 localStorage 本機備援。<br>
+        PDF 匯入使用 GPT-4o-mini，挖空成本約每條 $0.0001 USD。<br><br>
         用戶：kumo<br>
         建議定期使用「匯出備份」。
       </div>
@@ -474,6 +587,7 @@ nav button.on{color:var(--al)}
   <button data-v="home" class="on"><span class="ni">◉</span><span>總覽</span></button>
   <button data-v="card"><span class="ni">⬚</span><span>閃卡</span></button>
   <button data-v="add"><span class="ni">+</span><span>新增</span></button>
+  <button data-v="imp"><span class="ni">⇪</span><span>PDF</span></button>
   <button data-v="search"><span class="ni">⚲</span><span>檢索</span></button>
   <button data-v="notes"><span class="ni">✎</span><span>筆記</span></button>
   <button data-v="sets"><span class="ni">⚙</span><span>設定</span></button>
@@ -487,8 +601,14 @@ nav button.on{color:var(--al)}
 // ==========================================
 let cards=[],prog={},notes={};
 let currentCard=null,cardQueue=[],cardIdx=0,cardFlipped=false;
+let cardMode="cloze"; // cloze | full （預設克漏字模式）
+let blksRevealed=new Set(); // 當前卡片中已揭示的空格 index
 let searchFilter="全部",searchQuery="",expandedCard=null,editingCard=null;
 let noteFilter="all",editingNote=null;
+
+// PDF 匯入用
+let impParsed=[]; // {num,title,content,blanks,markdown,status}
+let impAbort=false;
 
 // ==========================================
 // SM-2 演算法
@@ -551,6 +671,8 @@ function showView(v){
   else if(v==="add")renderAdd();
   else if(v==="search")renderSearch();
   else if(v==="notes")renderNotes();
+  else if(v==="imp")renderImport();
+  else if(v==="sets")renderSettings();
 }
 document.querySelectorAll("nav button").forEach(b=>{
   b.addEventListener("click",()=>showView(b.dataset.v));
@@ -631,6 +753,22 @@ function startReview(){
   renderCard();
 }
 
+// 把條文內容渲染成「挖空版」（含可點擊的空格 span）
+function renderClozeContent(content,blanks){
+  if(!blanks||blanks.length===0)return escapeHtml(content);
+  // blanks: [{text, start, end}] - 按 start 排序
+  const sorted=[...blanks].sort((a,b)=>a.start-b.start);
+  let out="",cursor=0;
+  sorted.forEach((b,i)=>{
+    if(b.start>cursor)out+=escapeHtml(content.slice(cursor,b.start));
+    const revealed=blksRevealed.has(i)?"show":"";
+    out+=`<span class="blk ${revealed}" onclick="toggleBlk(${i})" data-idx="${i}">${escapeHtml(b.text)}</span>`;
+    cursor=b.end;
+  });
+  if(cursor<content.length)out+=escapeHtml(content.slice(cursor));
+  return out;
+}
+
 function renderCard(){
   const wrap=document.getElementById("card-content");
   
@@ -659,24 +797,49 @@ function renderCard(){
   const c=cardQueue[cardIdx];
   const pgPct=((cardIdx+1)/cardQueue.length)*100;
   const note=notes[c.id];
+  const hasBlanks=c.blanks&&c.blanks.length>0;
+  const realMode=hasBlanks?cardMode:"full";
+  
+  // 模式切換器（只有當卡片有 blanks 時才顯示）
+  const modeTab=hasBlanks?`
+    <div class="mode-tab">
+      <button class="${realMode==="cloze"?"on":""}" onclick="setMode('cloze')">克漏字模式</button>
+      <button class="${realMode==="full"?"on":""}" onclick="setMode('full')">全文模式</button>
+    </div>`:"";
   
   let cardHtml;
   if(!cardFlipped){
-    cardHtml=`
-      <div class="qcard qcard-front" onclick="flipCard()">
-        <div class="qlaw">${c.law}</div>
-        <div class="qnum">${c.num}</div>
-        ${c.title?`<div class="qttl">${c.title}</div>`:""}
-        <div class="qhint">點擊翻面</div>
-      </div>`;
+    if(realMode==="cloze"){
+      // 克漏字模式：正面直接顯示挖空版
+      cardHtml=`
+        <div class="qcard qcard-back" onclick="flipCard()" style="cursor:default">
+          <div class="qback-head">
+            <div class="qback-law">${escapeHtml(c.law)}</div>
+            <div class="qback-num">${escapeHtml(c.num)}</div>
+          </div>
+          ${c.title?`<div class="qback-ttl">${escapeHtml(c.title)}</div>`:""}
+          <div class="qcontent" onclick="event.stopPropagation()">${renderClozeContent(c.content,c.blanks)}</div>
+          <div class="qhint" style="margin-top:16px">點擊空格揭示答案，或點下方「翻面」看完整版</div>
+        </div>`;
+    }else{
+      // 全文模式：正面顯示條號標題
+      cardHtml=`
+        <div class="qcard qcard-front" onclick="flipCard()">
+          <div class="qlaw">${escapeHtml(c.law)}</div>
+          <div class="qnum">${escapeHtml(c.num)}</div>
+          ${c.title?`<div class="qttl">${escapeHtml(c.title)}</div>`:""}
+          <div class="qhint">點擊翻面</div>
+        </div>`;
+    }
   }else{
+    // 翻面：顯示完整條文（兩種模式背面都一樣）
     cardHtml=`
       <div class="qcard qcard-back" onclick="flipCard()">
         <div class="qback-head">
-          <div class="qback-law">${c.law}</div>
-          <div class="qback-num">${c.num}</div>
+          <div class="qback-law">${escapeHtml(c.law)}</div>
+          <div class="qback-num">${escapeHtml(c.num)}</div>
         </div>
-        ${c.title?`<div class="qback-ttl">${c.title}</div>`:""}
+        ${c.title?`<div class="qback-ttl">${escapeHtml(c.title)}</div>`:""}
         <div class="qcontent">${escapeHtml(c.content)}</div>
         ${note?`<div class="qnote"><div class="qnote-lbl">My Note</div><div class="qnote-txt">${escapeHtml(note)}</div></div>`:""}
       </div>`;
@@ -685,6 +848,9 @@ function renderCard(){
   const existing=prog[c.id];
   const predA=sm2(existing,1),predB=sm2(existing,3),predC=sm2(existing,5);
   
+  // 克漏字模式下，沒翻面也要能直接評分（因為內容已可見）
+  const showRating=cardFlipped||(realMode==="cloze"&&blksRevealed.size>0);
+  
   wrap.innerHTML=`
     <div class="qtop">
       <button class="qback" onclick="showView('home')">‹</button>
@@ -692,8 +858,9 @@ function renderCard(){
       <button class="qflip" onclick="flipCard()">↻</button>
     </div>
     <div class="qprog"><div class="qfill" style="width:${pgPct}%"></div></div>
+    ${modeTab}
     ${cardHtml}
-    ${cardFlipped?`
+    ${showRating?`
       <div class="rate-lbl">評估熟練度</div>
       <div class="rates">
         <button class="rate rd" onclick="rateCard(1)">
@@ -715,12 +882,28 @@ function renderCard(){
   `;
 }
 
-window.flipCard=()=>{cardFlipped=!cardFlipped;renderCard();};
+window.setMode=(m)=>{
+  cardMode=m;
+  blksRevealed=new Set();
+  cardFlipped=false;
+  renderCard();
+};
+window.toggleBlk=(i)=>{
+  if(blksRevealed.has(i))blksRevealed.delete(i);
+  else blksRevealed.add(i);
+  renderCard();
+};
+window.flipCard=()=>{
+  cardFlipped=!cardFlipped;
+  if(cardFlipped)blksRevealed=new Set();
+  renderCard();
+};
 window.rateCard=(q)=>{
   const c=cardQueue[cardIdx];
   prog[c.id]=sm2(prog[c.id],q);
   save();
   cardFlipped=false;
+  blksRevealed=new Set();
   cardIdx++;
   renderCard();
 };
@@ -1012,14 +1195,423 @@ function escapeHtml(s){
 }
 
 // ==========================================
-// 啟動
+// API Key 管理
 // ==========================================
+function getApiKey(){return localStorage.getItem("openai-key")||"";}
+function setApiKey(k){
+  if(k)localStorage.setItem("openai-key",k);
+  else localStorage.removeItem("openai-key");
+}
+function maskKey(k){
+  if(!k)return"";
+  if(k.length<14)return"****";
+  return k.slice(0,7)+"…"+k.slice(-4);
+}
+
+function renderSettings(){
+  const k=getApiKey();
+  const inp=document.getElementById("key-input");
+  const stat=document.getElementById("key-status");
+  inp.value="";
+  inp.placeholder=k?maskKey(k):"sk-proj-...";
+  if(k){
+    stat.textContent="✓ 已設定（"+maskKey(k)+"）";
+    stat.className="key-status set";
+  }else{
+    stat.textContent="尚未設定 — PDF 匯入無法使用";
+    stat.className="key-status";
+  }
+}
+
+document.getElementById("btn-keysave").addEventListener("click",()=>{
+  const v=document.getElementById("key-input").value.trim();
+  if(!v){toast("請先貼上 key");return;}
+  if(!v.startsWith("sk-")){
+    if(!confirm("這串不是 sk- 開頭，確定是 OpenAI API key 嗎？"))return;
+  }
+  setApiKey(v);
+  toast("已儲存 API key");
+  renderSettings();
+});
+document.getElementById("btn-keyclear").addEventListener("click",()=>{
+  if(!confirm("確定清除 API key？"))return;
+  setApiKey("");
+  toast("已清除");
+  renderSettings();
+});
+document.getElementById("btn-keyshow").addEventListener("click",()=>{
+  const inp=document.getElementById("key-input");
+  if(inp.type==="password"){
+    inp.type="text";
+    inp.value=getApiKey();
+  }else{
+    inp.type="password";
+    inp.value="";
+  }
+});
+
+// ==========================================
+// PDF 匯入：第一步畫面
+// ==========================================
+function renderImport(){
+  document.getElementById("imp-step1").style.display="block";
+  document.getElementById("imp-step2").style.display="none";
+  document.getElementById("key-warn").style.display=getApiKey()?"none":"block";
+  impParsed=[];
+  impAbort=false;
+}
+
+document.getElementById("dropzone").addEventListener("click",()=>{
+  document.getElementById("pdfinp").click();
+});
+document.getElementById("pdfinp").addEventListener("change",e=>{
+  const f=e.target.files[0];
+  if(f)handlePdf(f);
+  e.target.value="";
+});
+
+// 拖放支援
+const dz=document.getElementById("dropzone");
+["dragenter","dragover"].forEach(ev=>{
+  dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add("dragover");});
+});
+["dragleave","drop"].forEach(ev=>{
+  dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove("dragover");});
+});
+dz.addEventListener("drop",e=>{
+  const f=e.dataTransfer.files[0];
+  if(f&&f.type==="application/pdf")handlePdf(f);
+  else toast("請拖入 PDF 檔");
+});
+
+// ==========================================
+// 步驟 A：解析 PDF → 切條文 → 顯示列表
+// ==========================================
+async function handlePdf(file){
+  if(!getApiKey()){
+    alert("請先到「設定」頁面設定 OpenAI API key");
+    return;
+  }
+  
+  // 切換到 step2
+  document.getElementById("imp-step1").style.display="none";
+  document.getElementById("imp-step2").style.display="block";
+  document.getElementById("imp2-h").textContent="解析 PDF…";
+  document.getElementById("imp2-sub").textContent=file.name;
+  document.getElementById("imp2-status").textContent="抽取文字中";
+  document.getElementById("imp2-pct").textContent="0%";
+  document.getElementById("imp2-fill").style.width="0";
+  document.getElementById("imp2-list").innerHTML="";
+  document.getElementById("imp2-acts").style.display="none";
+  
+  try{
+    // 1. 抽文字
+    const text=await pdfToText(file);
+    
+    // 2. 切條文
+    const articles=splitArticles(text);
+    if(articles.length===0){
+      alert("找不到任何條文。請確認 PDF 內容包含「第 X 條」格式。");
+      renderImport();
+      showView("imp");
+      return;
+    }
+    
+    impParsed=articles.map(a=>({
+      ...a,
+      law:guessLawName(text)||"未指定",
+      blanks:[],
+      markdown:"",
+      status:"wait", // wait | proc | ok | err
+      err:null,
+    }));
+    
+    // 3. 顯示列表
+    document.getElementById("imp2-h").textContent="找到 "+articles.length+" 條";
+    document.getElementById("imp2-sub").textContent="點擊「開始 AI 挖空」開始處理";
+    document.getElementById("imp2-status").textContent="待處理";
+    renderImpList();
+    
+    // 顯示開始按鈕
+    document.getElementById("imp2-acts").style.display="flex";
+    document.getElementById("btn-imp-save").textContent="開始 AI 挖空";
+    document.getElementById("btn-imp-save").onclick=runAiCloze;
+    document.getElementById("btn-imp-cancel").onclick=()=>{
+      impAbort=true;
+      renderImport();
+    };
+  }catch(err){
+    console.error(err);
+    alert("解析失敗："+err.message);
+    renderImport();
+  }
+}
+
+// PDF → 純文字
+async function pdfToText(file){
+  const buf=await file.arrayBuffer();
+  const pdf=await window.pdfjsLib.getDocument({data:buf}).promise;
+  let allText="";
+  for(let i=1;i<=pdf.numPages;i++){
+    document.getElementById("imp2-status").textContent="抽取文字中（"+i+"/"+pdf.numPages+" 頁）";
+    document.getElementById("imp2-pct").textContent=Math.round(i/pdf.numPages*100)+"%";
+    document.getElementById("imp2-fill").style.width=(i/pdf.numPages*100)+"%";
+    const page=await pdf.getPage(i);
+    const tc=await page.getTextContent();
+    // 用 y 座標分行（pdf.js 的 items 不一定按順序）
+    const items=tc.items;
+    let lastY=null,lineText="";
+    const lines=[];
+    items.forEach(it=>{
+      const y=Math.round(it.transform[5]);
+      if(lastY!==null&&Math.abs(y-lastY)>3){
+        lines.push(lineText.trim());
+        lineText="";
+      }
+      lineText+=it.str;
+      lastY=y;
+    });
+    if(lineText)lines.push(lineText.trim());
+    allText+=lines.filter(l=>l).join("\n")+"\n";
+  }
+  return allText;
+}
+
+// 從文字猜法律名稱（找首頁開頭的「XXX法」「XXX條例」「XXX規則」）
+function guessLawName(text){
+  // 中文常見：勞動基準法、勞工保險條例、就業保險法...
+  const m=text.match(/^[^\n]*?([\u4e00-\u9fa5]{2,12}(?:法|條例|規則|準則|細則))/m);
+  if(m)return m[1];
+  return null;
+}
+
+// 切條文：找「第 X 條」
+function splitArticles(text){
+  // 正則：第 X 條 / 第X條 / 第 X-Y 條
+  const re=/第\s*([一二三四五六七八九十百零〇壹貳參肆伍陸柒捌玖拾0-9]+)\s*(?:之\s*([一二三四五六七八九十0-9]+)\s*)?條/g;
+  const matches=[];
+  let m;
+  while((m=re.exec(text))!==null){
+    matches.push({idx:m.index,len:m[0].length,full:m[0],main:m[1],sub:m[2]||null});
+  }
+  if(matches.length===0)return[];
+  
+  const articles=[];
+  for(let i=0;i<matches.length;i++){
+    const start=matches[i].idx;
+    const end=i+1<matches.length?matches[i+1].idx:text.length;
+    let body=text.slice(start,end).trim();
+    // 第一行通常是「第 X 條」，後面可能緊跟標題（簡短），其餘是內容
+    const firstLineEnd=body.indexOf("\n");
+    let header=firstLineEnd>0?body.slice(0,firstLineEnd):body;
+    let content=firstLineEnd>0?body.slice(firstLineEnd+1).trim():"";
+    
+    // header 通常是「第 X 條」加上可能的標題
+    const num=matches[i].full;
+    let title=header.replace(num,"").trim();
+    
+    // 過濾掉明顯不是條文的雜訊（章節標題等）
+    if(content.length<8)continue;
+    if(content.length>3000)continue; // 太長可能切錯
+    
+    articles.push({num,title,content});
+  }
+  return articles;
+}
+
+function renderImpList(){
+  const el=document.getElementById("imp2-list");
+  el.innerHTML=impParsed.map((a,i)=>{
+    const stCls=a.status;
+    const stTxt={wait:"待處理",proc:"處理中",ok:"完成",err:"失敗"}[a.status];
+    const preview=a.markdown?`<div class="imp-row-mark">${renderMarkPreview(a.markdown)}</div>`
+                  :`<div class="imp-row-prev">${escapeHtml(a.content.slice(0,80))}${a.content.length>80?"…":""}</div>`;
+    return `<div class="imp-row ${stCls}">
+      <div class="imp-row-h">
+        <span class="imp-row-num">${escapeHtml(a.num)}</span>
+        ${a.title?`<span style="font-size:11px;color:var(--mu)">${escapeHtml(a.title)}</span>`:""}
+        <span class="imp-row-st ${stCls}" style="margin-left:auto">${stTxt}</span>
+      </div>
+      ${preview}
+      ${a.err?`<div style="font-size:11px;color:var(--rd)">${escapeHtml(a.err)}</div>`:""}
+    </div>`;
+  }).join("");
+}
+
+// markdown ([[挖空字]]) → 預覽 HTML
+function renderMarkPreview(mark){
+  const parts=mark.split(/(\[\[[^\]]+\]\])/);
+  return parts.map(p=>{
+    if(p.startsWith("[[")&&p.endsWith("]]")){
+      return `<span class="blk">${escapeHtml(p.slice(2,-2))}</span>`;
+    }
+    return escapeHtml(p);
+  }).join("");
+}
+
+// ==========================================
+// 步驟 B：呼叫 OpenAI 逐條挖空
+// ==========================================
+async function runAiCloze(){
+  const key=getApiKey();
+  if(!key){alert("尚未設定 API key");return;}
+  
+  document.getElementById("btn-imp-save").disabled=true;
+  document.getElementById("btn-imp-save").textContent="處理中…";
+  document.getElementById("imp2-h").textContent="AI 挖空中…";
+  document.getElementById("imp2-sub").textContent="預估每條約 3-8 秒";
+  
+  let done=0;
+  for(let i=0;i<impParsed.length;i++){
+    if(impAbort)break;
+    const a=impParsed[i];
+    a.status="proc";
+    document.getElementById("imp2-status").textContent="處理 "+(i+1)+"/"+impParsed.length+"（"+a.num+"）";
+    document.getElementById("imp2-pct").textContent=Math.round(i/impParsed.length*100)+"%";
+    document.getElementById("imp2-fill").style.width=(i/impParsed.length*100)+"%";
+    renderImpList();
+    
+    try{
+      const res=await callOpenAi(a.content,key);
+      a.markdown=res.markdown;
+      a.blanks=parseBlanksFromMarkdown(res.markdown,a.content);
+      a.status="ok";
+    }catch(err){
+      console.warn("AI err",err);
+      a.status="err";
+      a.err=err.message;
+    }
+    done++;
+    renderImpList();
+  }
+  
+  document.getElementById("imp2-pct").textContent="100%";
+  document.getElementById("imp2-fill").style.width="100%";
+  document.getElementById("imp2-status").textContent="處理完成";
+  document.getElementById("imp2-h").textContent="預覽結果";
+  document.getElementById("imp2-sub").textContent="確認沒問題後存入題庫";
+  
+  document.getElementById("btn-imp-save").disabled=false;
+  document.getElementById("btn-imp-save").textContent="全部儲存到題庫";
+  document.getElementById("btn-imp-save").onclick=saveImpToLibrary;
+}
+
+// 呼叫 OpenAI Chat API
+async function callOpenAi(content,key){
+  const sys=`你是台灣法律考試準備專家。使用者會給你一段法條內容。
+請從中挑出最重要的考試關鍵字（法律名詞、要件詞語、效果詞語、特定數字/期間），用 [[ ]] 包起來標記為挖空目標。
+
+挑選原則：
+- 法律概念名詞：例如 雇主、勞工、定期契約、不定期契約、解僱、預告、職業災害、雇主代理人
+- 要件詞語：例如 不得、應、得、必要、有下列情形之一、虛偽意思表示、情節重大
+- 數字與期間：例如 三十日、一個月、二分之一、四十六小時
+- 一條挑 3-8 個關鍵字（不要太多也不要太少）
+- 不要挖普通連接詞、虛詞、標點
+
+請只回傳挖空後的條文內容（用 [[ ]] 包關鍵字），不要加任何說明、不要 markdown code block、不要任何前後綴。直接從條文第一個字開始。`;
+  
+  const body={
+    model:"gpt-4o-mini",
+    messages:[
+      {role:"system",content:sys},
+      {role:"user",content:content},
+    ],
+    temperature:0.3,
+  };
+  
+  const res=await fetch("https://api.openai.com/v1/chat/completions",{
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json",
+      "Authorization":"Bearer "+key,
+    },
+    body:JSON.stringify(body),
+  });
+  
+  if(!res.ok){
+    const errText=await res.text();
+    let errMsg="HTTP "+res.status;
+    try{
+      const j=JSON.parse(errText);
+      errMsg=j.error?.message||errMsg;
+    }catch(_){}
+    throw new Error(errMsg);
+  }
+  
+  const json=await res.json();
+  const md=json.choices?.[0]?.message?.content?.trim()||"";
+  if(!md)throw new Error("AI 回傳空內容");
+  return{markdown:md};
+}
+
+// 從 [[ ]] markdown 解析 blanks → 對應到原文位置
+function parseBlanksFromMarkdown(mark,original){
+  const blanks=[];
+  // 拆 markdown 出 plain text 與 [[token]]
+  const parts=mark.split(/(\[\[[^\]]+\]\])/);
+  // 重組 plain text
+  let plain="";
+  const items=[];
+  parts.forEach(p=>{
+    if(p.startsWith("[[")&&p.endsWith("]]")){
+      const t=p.slice(2,-2);
+      items.push({type:"blank",text:t,plainStart:plain.length});
+      plain+=t;
+    }else{
+      plain+=p;
+    }
+  });
+  
+  // 嘗試找出每個 blank 在 original 中的位置
+  // 因為 AI 可能微調空白/標點，先用嚴格比對，失敗則用模糊
+  let cursor=0;
+  for(const it of items){
+    const idx=original.indexOf(it.text,cursor);
+    if(idx>=0){
+      blanks.push({text:it.text,start:idx,end:idx+it.text.length});
+      cursor=idx+it.text.length;
+    }
+    // 找不到就跳過該 blank（不影響其他）
+  }
+  return blanks;
+}
+
+// ==========================================
+// 步驟 C：存入題庫
+// ==========================================
+function saveImpToLibrary(){
+  const ok=impParsed.filter(a=>a.status==="ok"&&a.blanks.length>0);
+  if(ok.length===0){
+    alert("沒有可儲存的條文（需要至少一個成功挖空的）");
+    return;
+  }
+  if(!confirm("將儲存 "+ok.length+" 條到題庫，繼續嗎？"))return;
+  
+  ok.forEach(a=>{
+    cards.push({
+      id:uid(),
+      law:a.law,
+      num:a.num,
+      title:a.title||"",
+      content:a.content,
+      blanks:a.blanks,
+      createdAt:Date.now(),
+    });
+  });
+  save();
+  toast("已新增 "+ok.length+" 條");
+  renderImport();
+  showView("home");
+}
+
+
 function boot(){
   cards=window._cards||[];
   prog=window._prog||{};
   notes=window._notes||{};
   updateSyncBadge();
   renderHome();
+  renderSettings();
 }
 if(window._fbReady)boot();
 else window._onFbReady=boot;
